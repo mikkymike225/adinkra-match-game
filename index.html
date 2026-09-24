@@ -115,6 +115,19 @@ button.card.name{min-height:84px;padding:10px 7px}
 @media(max-width:800px){.puzzle-layout{grid-template-columns:1fr}.puzzle-piece-panel{position:static;display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:10px;align-items:center}.puzzle-piece-panel h3,.puzzle-piece-note{grid-column:1}.current-piece{grid-column:2;grid-row:1 / span 3}.puzzle-actions{grid-column:1;grid-row:3;grid-template-columns:1fr 1fr}.puzzle-feedback{grid-column:1 / -1}}
 @media(max-width:520px){.level-select{padding:12px}.level-buttons{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.level-btn{font-size:.76rem;padding:8px 3px}.puzzle-board-shell{padding:6px;border-radius:10px}.puzzle-piece-panel{grid-template-columns:minmax(0,1fr) 130px;padding:10px}.puzzle-actions .btn{padding:8px 10px;font-size:.78rem}}
 
+
+.piece-bank{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:55vh;overflow:auto;padding:2px}
+.puzzle-piece{width:100%;aspect-ratio:1.15;border:2px solid #d7c7a6;border-radius:8px;background:#faf8f2;padding:0;overflow:hidden;cursor:grab}
+.puzzle-piece.selected{outline:3px solid var(--gold);outline-offset:1px}
+.puzzle-piece img{width:100%;height:100%;object-fit:fill;display:block}
+.puzzle-cell.missing.has-piece{border-style:solid;border-color:#d7c7a6;padding:0}
+.puzzle-cell.missing.has-piece img{width:100%;height:100%;object-fit:fill;display:block}
+.puzzle-cell.submitted-correct{outline:3px solid #3d8966;outline-offset:-3px}
+.puzzle-cell.submitted-wrong{outline:3px solid #bd5a52;outline-offset:-3px}
+.puzzle-cell.missing.selected{outline:3px solid var(--gold);outline-offset:-3px}
+#submitPuzzle{grid-column:1/-1}
+@media(max-width:800px){.puzzle-piece-panel{position:static;display:block}.piece-bank{grid-template-columns:repeat(4,minmax(0,1fr));max-height:260px}}
+@media(max-width:520px){.puzzle-piece-panel{padding:10px}.piece-bank{grid-template-columns:repeat(3,minmax(0,1fr));max-height:220px}}
 </style>
 </head>
 <body>
@@ -183,10 +196,10 @@ button.card.name{min-height:84px;padding:10px 7px}
   <div class="puzzle-layout">
     <div class="puzzle-board-shell"><div class="puzzle-grid" id="puzzleGrid" aria-label="Adinkra matching puzzle board"></div></div>
     <aside class="puzzle-piece-panel">
-      <div><h3>Next missing piece</h3><div class="puzzle-piece-note">Drag this piece to its place. On a phone, tap the piece, then tap the matching empty space. Use “Next piece” if you want to skip it for now.</div></div>
-      <button type="button" class="current-piece" id="currentPiece" draggable="true" aria-label="Current puzzle piece"></button>
+      <div><h3>Missing pieces</h3><div class="puzzle-piece-note">Place each piece anywhere on the board. Move pieces freely, then submit to see your score. On a phone, tap a piece and then tap an empty space.</div></div>
+      <div class="piece-bank" id="pieceBank" aria-label="Pieces to place"></div>
       <div class="puzzle-actions">
-        <button type="button" class="btn primary" id="nextPiece">Next piece</button>
+        <button type="button" class="btn primary" id="submitPuzzle">Submit board</button>
         <button type="button" class="btn" id="restartPuzzle">Restart level</button>
       </div>
       <div class="puzzle-feedback" id="puzzleFeedback" aria-live="polite"></div>
@@ -194,7 +207,7 @@ button.card.name{min-height:84px;padding:10px 7px}
   </div>
   <div class="puzzle-complete" id="puzzleComplete" hidden>
     <h3 id="completeTitle">Board complete!</h3>
-    <p>You placed all 20 missing pieces in their correct spaces.</p>
+    <p id="completeMessage"></p>
     <button type="button" class="btn primary" id="continueLevel">Continue</button>
   </div>
 </section>
@@ -325,133 +338,143 @@ $("#submit").addEventListener("click",()=>{
   });
   const pct=Math.round(score/6*100);
   const achievement=score===6?"Adinkra Master 🏆":score>=4?"Symbol Scholar 🌟":score>=2?"Culture Explorer 🌿":"Keep Learning 📚";
+  if(score===6){unlockedLevel=Math.max(unlockedLevel,2);localStorage.setItem("adinkraUnlockedLevel",String(unlockedLevel));updateLevelButtons();}
   result.className="result show";
   result.innerHTML=`<div class="resultrow"><div><div class="sub">YOUR SCORE</div><div class="big">${score}/6</div><strong>${achievement}</strong></div><div style="text-align:right"><div class="big">${pct}%</div><div class="sub">${score===6?'Perfect match!':'Green = correct · Red = incorrect'}</div></div></div>`;
+  if(score===6){
+    const next=document.createElement("button");next.className="btn primary";next.textContent="Continue to Level 2";
+    next.addEventListener("click",()=>chooseLevel(2));result.appendChild(next);
+  }else{
+    const note=document.createElement("div");note.className="sub";note.textContent="Get all six correct to unlock Level 2.";result.appendChild(note);
+  }
 });
 $("#reset").addEventListener("click",()=>start(false));
 $("#shuffle").addEventListener("click",()=>start(true));
 
-const puzzleLevels={
-  2:{title:"LEVEL 2 · BOARD 1",src:"assets/levels/level-2.jpg",ratio:"694 / 1035",mask:[1,3,1,3,0,2,1,3,0,2,0,2,1,3,1,2,1,3,0,2]},
-  3:{title:"LEVEL 3 · BOARD 2",src:"assets/levels/level-3.jpg",ratio:"723 / 1035",mask:[0,2,0,2,1,3,0,2,1,3,1,3,0,2,0,2,1,3,1,3]},
-  4:{title:"LEVEL 4 · BOARD 3",src:"assets/levels/level-4.jpg",ratio:"694 / 1035",mask:[1,3,1,3,0,2,1,3,0,2,0,2,1,3,1,2,1,3,0,2]},
-  5:{title:"LEVEL 5 · BOARD 4",src:"assets/levels/level-5.jpg",ratio:"723 / 1035",mask:[0,2,0,2,1,3,0,2,1,3,1,3,0,2,0,2,1,3,1,3]}
+const puzzlePairs={
+  2:["GYE NYAME","KONTIRE AKWAMU","BINKABI","DENKYEM","NTESIE / MATEMASIE","ƐSE NE TEKYEREMA","NKƆNSON-KƆNSON","WAWA ABA","ƆSANE NE NSOROMA","ADINKRA-HENE","OGYANA YENIMMEN","OHENE TUO","SANKOFA","AKOFENA","AKOKOBAATAN","MMARA","OWUO ATWEDEE","AKOMA","HANDCUFF","NKINKYIM"],
+  3:["NYAME NE NNWU NA MAWU","KINTINKANTAN","NYAME DUA","SANKOFA","SEPO","KETE PA","NYAME NTI","PAGYA","DAME DAME","HWEMUDUA","NSOROMA","BESE SAKA","AKOFENA","ABUSUA PA","ADWO","AGYIN DAWURU","ASETENA PA","BOAFO YE NA","DONO","KRAPA"],
+  4:["BOA ME NA ME BOA WO","FAWOHODIE","FOFOO","EBAN","ME WARE WO","SANKOFA","DUA","DWENNIMMEN","MUSUYIDE","MRE DANE","MATAPO","NSAA","NEA ONNIM NO SUA A OHU","NYANSAPO","WOFORO DUA PA A","WO NSA DA MU A","ODO NYERA FIE KWAN","FINANKRA","BIRIBI WO SORO","GYAWU ATIKO"],
+  5:["NYAME NE NNWU NA MAWU","KINTINKANTAN","NYAME DUA","SANKOFA","SEPO","KETE PA","NYAME NTI","PAGYA","DAME DAME","HWEMUDUA","NSOROMA","BESE SAKA","AKOFENA","ABUSUA PA","ADWO","AGYIN DAWURU","ASETENA PA","BOAFO YE NA","DONO","DUAFE"]
 };
-const puzzleTileCache={};
-let activePuzzleLevel=2,puzzleHidden=[],puzzleQueue=[],puzzlePlaced=new Set(),currentPieceSelected=false;
-const puzzleGrid=$("#puzzleGrid"),currentPiece=$("#currentPiece"),puzzleFeedback=$("#puzzleFeedback");
+const puzzleLevels={
+  2:{title:"LEVEL 2 · LEFT BOARD",ratio:"694 / 1035",mask:Array.from({length:20},(_,i)=>i%2?2:0)},
+  3:{title:"LEVEL 3 · RIGHT BOARD",ratio:"723 / 1035",mask:Array.from({length:20},(_,i)=>i%2?2:0)},
+  4:{title:"LEVEL 4 · LEFT BOARD",ratio:"694 / 1035",mask:Array.from({length:20},(_,i)=>i%2?2:0)},
+  5:{title:"LEVEL 5 · RIGHT BOARD",ratio:"723 / 1035",mask:Array.from({length:20},(_,i)=>i%2?2:0)}
+};
+const boardColors=["#49a3d5","#a5cf4b","#eb2834","#f0c51c","#f07e24","#82c6ad","#362f85","#f3a5d0","#16c3d5","#c5be7c","#73cbbf","#9d45a8","#d14275","#f1b5c8","#657f8e","#30b862","#b58abc","#f4d20a","#079b5c","#3d5964"];
+const puzzleTileCache={},puzzleTileColors={};
+let activePuzzleLevel=2,puzzleHidden=[],placements={},selectedPiece=null,hasSubmitted=false;
+let unlockedLevel=Math.max(1,Number(localStorage.getItem("adinkraUnlockedLevel")||1));
+const puzzleGrid=$("#puzzleGrid"),pieceBank=$("#pieceBank"),puzzleFeedback=$("#puzzleFeedback");
 async function getPuzzleTiles(level){
-  if(puzzleTileCache[level]) return puzzleTileCache[level];
-  const img=new Image();
-  img.src=puzzleLevels[level].src;
-  await img.decode();
-  const tileW=img.naturalWidth/4,tileH=img.naturalHeight/10;
-  const tiles=[];
-  for(let i=0;i<40;i++){
-    const col=i%4,row=Math.floor(i/4),canvas=document.createElement("canvas");
-    canvas.width=360;canvas.height=Math.round(360*tileH/tileW);
-    const ctx=canvas.getContext("2d");
-    ctx.drawImage(img,col*tileW,row*tileH,tileW,tileH,0,0,canvas.width,canvas.height);
-    tiles.push(canvas.toDataURL("image/jpeg",.9));
+  if(puzzleTileCache[level])return puzzleTileCache[level];
+  const sprite=new Image();sprite.src="assets/adinkra/generated-symbols.webp";await sprite.decode();
+  const cellW=sprite.naturalWidth/5,cellH=sprite.naturalHeight/4,tiles=Array(40);
+  puzzleTileColors[level]=Array(40);
+  const pairs=puzzlePairs[level];
+  for(let p=0;p<20;p++){
+    const row=Math.floor(p/2),pairInRow=p%2,symbolIndex=row*4+pairInRow*2,nameIndex=symbolIndex+1;
+    const color=boardColors[(p+level*3)%boardColors.length];
+    puzzleTileColors[level][symbolIndex]=color;puzzleTileColors[level][nameIndex]=color;
+    const symbolCanvas=document.createElement("canvas");symbolCanvas.width=360;symbolCanvas.height=210;
+    const sctx=symbolCanvas.getContext("2d");sctx.fillStyle=color;sctx.fillRect(0,0,360,210);
+    const gx=p%5,gy=Math.floor(p/5),pad=35;
+    sctx.drawImage(sprite,gx*cellW,gy*cellH,cellW,cellH,pad,pad,290,140);
+    sctx.strokeStyle="rgba(31,26,20,.32)";sctx.lineWidth=2;sctx.strokeRect(1,1,358,208);
+    tiles[symbolIndex]=symbolCanvas.toDataURL("image/webp",.9);
+    const nameCanvas=document.createElement("canvas");nameCanvas.width=360;nameCanvas.height=210;
+    const nctx=nameCanvas.getContext("2d");nctx.fillStyle=color;nctx.fillRect(0,0,360,210);
+    nctx.strokeStyle="rgba(31,26,20,.32)";nctx.lineWidth=2;nctx.strokeRect(1,1,358,208);
+    nctx.fillStyle="#201c18";nctx.textAlign="center";nctx.textBaseline="middle";
+    const words=pairs[p].split(" ");let fontSize=24,lines=[];
+    while(fontSize>15){nctx.font=fontSize+"px Georgia,serif";lines=[];let line="";
+      words.forEach(word=>{const test=line?line+" "+word:word;if(nctx.measureText(test).width>310&&line){lines.push(line);line=word}else line=test});
+      if(line)lines.push(line);
+      if(lines.length<=3)break;fontSize--;
+    }
+    nctx.font="700 "+fontSize+"px Georgia,serif";
+    const lineHeight=fontSize*1.25,startY=105-(lines.length-1)*lineHeight/2;
+    lines.forEach((line,i)=>nctx.fillText(line,180,startY+i*lineHeight,320));
+    tiles[nameIndex]=nameCanvas.toDataURL("image/webp",.9);
   }
-  puzzleTileCache[level]=tiles;
-  return tiles;
+  puzzleTileCache[level]=tiles;return tiles;
+}
+function updateLevelButtons(){
+  document.querySelectorAll(".level-btn").forEach(b=>{
+    const level=Number(b.dataset.level);b.disabled=level>unlockedLevel;
+    b.setAttribute("aria-label",level>unlockedLevel?"Level "+level+" locked until you get a perfect score":"Level "+level);
+  });
 }
 function chooseLevel(level){
+  if(level>unlockedLevel){setFeedback("Get a perfect score on the previous level to unlock this one.","bad");return;}
   document.querySelectorAll(".level-btn").forEach(b=>b.setAttribute("aria-pressed",String(Number(b.dataset.level)===level)));
-  $("#levelOneGame").hidden=level!==1;
-  $("#puzzleGame").hidden=level===1;
+  $("#levelOneGame").hidden=level!==1;$("#puzzleGame").hidden=level===1;
   if(level>1) setupPuzzle(level);
 }
-function setFeedback(message,kind){
-  puzzleFeedback.textContent=message;
-  puzzleFeedback.className="puzzle-feedback"+(kind?" "+kind:"");
-}
+function setFeedback(message,kind){puzzleFeedback.textContent=message;puzzleFeedback.className="puzzle-feedback"+(kind?" "+kind:"");}
 async function setupPuzzle(level){
-  activePuzzleLevel=level;
-  puzzleGrid.style.aspectRatio=puzzleLevels[level].ratio;
+  activePuzzleLevel=level;puzzleGrid.style.aspectRatio=puzzleLevels[level].ratio;
   $("#puzzleTitle").textContent=puzzleLevels[level].title;
-  $("#puzzleInstructions").textContent="One tile from each symbol/name pair is missing. Put each shown piece back in its correct space.";
-  $("#puzzleComplete").hidden=true;
-  puzzlePlaced=new Set();
+  $("#puzzleInstructions").textContent="The first and third columns have missing symbol pieces. Each piece shares its matching name tile’s color. Place them freely, then submit.";
+  $("#puzzleComplete").hidden=true;placements={};selectedPiece=null;hasSubmitted=false;
   puzzleHidden=puzzleLevels[level].mask.map((col,rowPair)=>Math.floor(rowPair/2)*4+col);
-  puzzleQueue=shuffle(puzzleHidden);
-  currentPieceSelected=false;
-  setFeedback("Find the empty space that completes this pair.","");
-  await renderPuzzle();
+  setFeedback("Place every piece, then submit your board.","");await renderPuzzle();
 }
 async function renderPuzzle(){
   const tiles=await getPuzzleTiles(activePuzzleLevel);
   puzzleGrid.innerHTML=Array.from({length:40},(_,i)=>{
-    if(puzzlePlaced.has(i)) return '<div class="puzzle-cell filled" role="img" aria-label="Correctly placed Adinkra tile"><img src="'+tiles[i]+'" alt=""></div>';
-    if(puzzleHidden.includes(i)) return '<button type="button" class="puzzle-cell missing" data-target="'+i+'" aria-label="Empty puzzle space"></button>';
-    return '<div class="puzzle-cell fixed" role="img" aria-label="Adinkra board piece"><img src="'+tiles[i]+'" alt=""></div>';
+    if(puzzleHidden.includes(i)){
+      const piece=placements[i];
+      const cls="puzzle-cell missing"+(piece!==undefined?" has-piece":"")+(hasSubmitted?(piece===i?" submitted-correct":" submitted-wrong"):"")+(selectedPiece!==null&&piece===selectedPiece?" selected":"");
+      return '<button type="button" class="'+cls+'" style="background-color:'+puzzleTileColors[activePuzzleLevel][i]+'" data-slot="'+i+'" aria-label="'+(piece===undefined?"Empty space":"Placed piece, tap to select")+'">'+(piece!==undefined?'<img draggable="true" data-board-piece="'+piece+'" src="'+tiles[piece]+'" alt="Placed piece">':"")+'</button>';
+    }
+    return '<div class="puzzle-cell fixed" role="img" aria-label="Adinkra board tile"><img src="'+tiles[i]+'" alt=""></div>';
   }).join("");
-  $("#puzzleProgress").textContent=puzzlePlaced.size+" / 20 pieces placed";
-  updateCurrentPiece(tiles);
-  puzzleGrid.querySelectorAll("[data-target]").forEach(slot=>{
-    slot.addEventListener("click",()=>{
-      if(currentPieceSelected) tryPlacePiece(Number(slot.dataset.target));
-    });
+  pieceBank.innerHTML=puzzleHidden.filter(id=>!Object.values(placements).includes(id)).map(id=>'<button type="button" class="puzzle-piece '+(selectedPiece===id?"selected":"")+'" data-piece="'+id+'" draggable="true" aria-label="Piece '+(id+1)+'"><img src="'+tiles[id]+'" alt=""></button>').join("");
+  $("#puzzleProgress").textContent=Object.keys(placements).length+" / 20 pieces placed";
+  pieceBank.querySelectorAll("[data-piece]").forEach(el=>{
+    el.addEventListener("click",()=>{selectedPiece=Number(el.dataset.piece);renderPuzzle();setFeedback("Now choose any empty space. You can move pieces again before submitting.","");});
+    el.addEventListener("dragstart",e=>e.dataTransfer.setData("text/piece",el.dataset.piece));
+  });
+  puzzleGrid.querySelectorAll("[data-slot]").forEach(slot=>{
     slot.addEventListener("dragover",e=>e.preventDefault());
-    slot.addEventListener("drop",e=>{
-      e.preventDefault();
-      const target=Number(e.dataTransfer.getData("text/adinkra-piece"));
-      if(Number.isInteger(target)) tryPlacePiece(Number(slot.dataset.target),target);
+    slot.addEventListener("drop",e=>{e.preventDefault();const piece=Number(e.dataTransfer.getData("text/piece"));if(Number.isInteger(piece))placePuzzlePiece(Number(slot.dataset.slot),piece);});
+    slot.addEventListener("click",()=>{
+      const id=Number(slot.dataset.slot);
+      if(selectedPiece!==null){placePuzzlePiece(id,selectedPiece);return;}
+      if(placements[id]!==undefined){selectedPiece=placements[id];delete placements[id];hasSubmitted=false;$("#puzzleComplete").hidden=true;renderPuzzle();setFeedback("Piece picked up. Choose another empty space.","");}
     });
+    const img=slot.querySelector("[data-board-piece]");if(img)img.addEventListener("dragstart",e=>e.dataTransfer.setData("text/piece",img.dataset.boardPiece));
   });
 }
-function updateCurrentPiece(tiles){
-  currentPiece.classList.remove("selected");
-  currentPieceSelected=false;
-  if(!puzzleQueue.length){
-    currentPiece.draggable=false;
-    currentPiece.innerHTML='<span class="piece-blank">All missing pieces are placed.</span>';
-    return;
-  }
-  currentPiece.draggable=true;
-  const id=puzzleQueue[0];
-  currentPiece.dataset.target=String(id);
-  currentPiece.innerHTML='<img src="'+tiles[id]+'" alt="Piece to place">';
+function placePuzzlePiece(slotId,pieceId){
+  const oldSlot=Object.keys(placements).find(key=>placements[key]===pieceId);if(oldSlot!==undefined)delete placements[oldSlot];
+  const displaced=placements[slotId];if(displaced!==undefined)delete placements[slotId];
+  placements[slotId]=pieceId;selectedPiece=displaced!==undefined?displaced:null;hasSubmitted=false;$("#puzzleComplete").hidden=true;
+  renderPuzzle();setFeedback("Piece placed. Keep arranging, then submit for your score.","");
 }
-async function tryPlacePiece(slotId,pieceId){
-  if(!puzzleQueue.length) return;
-  const expected=puzzleQueue[0];
-  if(pieceId!==undefined && pieceId!==expected) return;
-  if(slotId!==expected){
-    setFeedback("That piece does not fit there. Try another empty space.","bad");
-    return;
-  }
-  puzzlePlaced.add(expected);
-  puzzleQueue.shift();
-  setFeedback("Correct match! Keep going.","good");
-  await renderPuzzle();
-  if(!puzzleQueue.length){
-    $("#puzzleComplete").hidden=false;
-    $("#completeTitle").textContent="Level "+activePuzzleLevel+" complete!";
+async function submitPuzzle(){
+  const correct=Object.entries(placements).filter(([slot,piece])=>Number(slot)===piece).length;
+  const total=puzzleHidden.length,score=(40-total)+correct,pct=Math.round(score/40*100),filled=Object.keys(placements).length;
+  hasSubmitted=true;await renderPuzzle();
+  if(correct===total){
+    unlockedLevel=Math.max(unlockedLevel,Math.min(5,activePuzzleLevel+1));localStorage.setItem("adinkraUnlockedLevel",String(unlockedLevel));updateLevelButtons();
+    $("#puzzleComplete").hidden=false;$("#completeTitle").textContent="Perfect score: "+score+" / 40!";
+    $("#completeMessage").textContent=activePuzzleLevel<5?"You got every piece correct. Level "+(activePuzzleLevel+1)+" is now unlocked.":"Perfect! You completed all five levels.";
     $("#continueLevel").textContent=activePuzzleLevel<5?"Continue to Level "+(activePuzzleLevel+1):"Play Level 1 again";
+    setFeedback("Perfect score! The next level is unlocked.","good");
+  }else{
+    $("#puzzleComplete").hidden=true;
+    setFeedback("Score: "+score+" / 40 ("+pct+"%). "+(filled<total?"Place the remaining pieces, then submit again.":"Move the red pieces and submit again. You need 100% to unlock the next level."),"bad");
   }
 }
-$("#currentPiece").addEventListener("click",()=>{
-  if(!puzzleQueue.length) return;
-  currentPieceSelected=!currentPieceSelected;
-  currentPiece.classList.toggle("selected",currentPieceSelected);
-  setFeedback(currentPieceSelected?"Now tap the matching empty space on the board.":"Piece selection cleared.","");
-});
-$("#currentPiece").addEventListener("dragstart",e=>{
-  if(puzzleQueue.length) e.dataTransfer.setData("text/adinkra-piece",puzzleQueue[0]);
-});
-$("#nextPiece").addEventListener("click",async()=>{
-  if(puzzleQueue.length>1){puzzleQueue.push(puzzleQueue.shift());await renderPuzzle();setFeedback("Skipped for now. Here is the next piece.","");}
-});
+$("#submitPuzzle").addEventListener("click",submitPuzzle);
 $("#restartPuzzle").addEventListener("click",()=>setupPuzzle(activePuzzleLevel));
-$("#continueLevel").addEventListener("click",()=>{
-  const next=activePuzzleLevel<5?activePuzzleLevel+1:1;
-  chooseLevel(next);
-  window.scrollTo({top:0,behavior:"smooth"});
-});
+$("#continueLevel").addEventListener("click",()=>{const next=activePuzzleLevel<5?activePuzzleLevel+1:1;chooseLevel(next);window.scrollTo({top:0,behavior:"smooth"});});
 document.querySelectorAll(".level-btn").forEach(b=>b.addEventListener("click",()=>chooseLevel(Number(b.dataset.level))));
-
+updateLevelButtons();
 chooseLevel(1);
 start(true);
 </script>
