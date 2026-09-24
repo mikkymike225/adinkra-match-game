@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Adinkra Match Game</title>
+<meta name="description" content="Match Ghanaian Adinkra symbols with their correct names and meanings.">
+<style>
+:root{
+  --ink:#171717; --paper:#fffaf0; --card:#ffffff; --gold:#d6a62a; --red:#8d2f2b;
+  --green:#235d45; --muted:#756f63; --line:#e7decf; --shadow:0 14px 40px rgba(55,42,22,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:
+radial-gradient(circle at 15% 15%,rgba(214,166,42,.11),transparent 24%),
+radial-gradient(circle at 85% 12%,rgba(35,93,69,.08),transparent 22%),
+var(--paper);color:var(--ink)}
+button{font:inherit}
+.wrap{width:min(1180px,calc(100% - 28px));margin:auto;padding:28px 0 42px}
+.hero{position:relative;overflow:hidden;border-radius:28px;background:linear-gradient(135deg,#18120b,#2b2112 60%,#3b2b13);padding:28px;color:#fff;box-shadow:var(--shadow)}
+.hero:after{content:"";position:absolute;width:240px;height:240px;border:34px solid rgba(214,166,42,.10);border-radius:50%;right:-90px;top:-95px}
+.kente{height:8px;border-radius:20px;background:linear-gradient(90deg,var(--gold) 0 25%,var(--red) 25% 50%,var(--green) 50% 75%,var(--gold) 75%)}
+.eyebrow{font-size:.77rem;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:#f7d989;margin-top:18px}
+h1{margin:6px 0 8px;font-size:clamp(2rem,4vw,3.6rem);line-height:.98}
+.hero p{max-width:720px;color:#e9dfcf;margin:0;font-size:1rem}
+.statusbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.pill{padding:8px 12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);border-radius:999px;font-size:.86rem}
+.game{display:grid;grid-template-columns:220px minmax(0,1fr) 240px;gap:14px;margin-top:16px}
+.panel{background:rgba(255,255,255,.86);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:22px;padding:15px;box-shadow:var(--shadow)}
+.panel-head{display:flex;justify-content:space-between;gap:8px;align-items:end;margin-bottom:12px}
+.panel h2{font-size:.95rem;margin:0;letter-spacing:.06em}
+.sub{font-size:.76rem;color:var(--muted);margin-top:3px}
+.count{font-size:.76rem;color:var(--muted);white-space:nowrap}
+.deck{display:grid;gap:9px}
+.card{min-height:82px;border:1px solid var(--line);background:#fff;border-radius:16px;display:flex;align-items:center;justify-content:center;padding:10px;cursor:pointer;transition:.18s ease}
+.card:hover{transform:translateY(-2px);border-color:#c8b68f}
+.card.selected{outline:3px solid var(--gold);background:#fff8dc}
+.card.used{opacity:.25;pointer-events:none}
+.symbol svg{width:64px;height:64px;display:block}
+.name{flex-direction:column;text-align:center}
+.name strong{font-size:.86rem;line-height:1.05}
+.name span{font-size:.7rem;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.07em}
+.slots{display:grid;gap:9px}
+.slot{display:grid;grid-template-columns:90px minmax(0,1fr);gap:9px;align-items:center;border:2px dashed #d9cdb9;border-radius:17px;padding:9px;background:#fffdf8;min-height:100px}
+.slot.ready{border-style:solid;border-color:#cab57f}
+.slot.correct{border-color:#3d8966;background:#f0faf5}
+.slot.wrong{border-color:#bd5a52;background:#fff3f2}
+.slotpart{min-height:78px;border:1px solid var(--line);border-radius:13px;background:#fff;display:flex;align-items:center;justify-content:center;padding:8px;text-align:center}
+.slotpart .name{pointer-events:none}
+.placeholder{font-size:.75rem;color:#9a9185}
+.controls{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line);background:#fff;border-radius:13px;min-height:44px;padding:10px 16px;font-weight:800;cursor:pointer}
+.btn.primary{background:#18120b;color:#fff;border-color:#18120b}
+.btn:hover{filter:brightness(.98)}
+.tip{margin-left:auto;font-size:.78rem;color:var(--muted)}
+.result{display:none;margin-top:12px;border:1px solid var(--line);border-radius:16px;background:#fff;padding:15px}
+.result.show{display:block}
+.resultrow{display:flex;justify-content:space-between;gap:16px;align-items:end;flex-wrap:wrap}
+.big{font-size:2rem;font-weight:900}
+.footer{font-size:.74rem;color:var(--muted);text-align:center;margin-top:20px}
+@media(max-width:900px){
+  .game{grid-template-columns:1fr}
+  .deck{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .tip{margin-left:0;width:100%}
+}
+@media(max-width:520px){
+  .wrap{width:min(100% - 18px,1180px);padding-top:12px}
+  .hero{padding:20px;border-radius:20px}
+  .deck{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .slot{grid-template-columns:76px minmax(0,1fr)}
+  .symbol svg{width:52px;height:52px}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+  <div class="kente"></div>
+  <div class="eyebrow">Ghanaian Adinkra Learning Game</div>
+  <h1>Match the Adinkra Symbols</h1>
+  <p>Choose a symbol from the left and pair it with the correct Adinkra name and meaning on the right. Complete all six, then submit your answers.</p>
+  <div class="statusbar">
+    <div class="pill">6 symbols</div>
+    <div class="pill">Tap or drag</div>
+    <div class="pill">Instant score</div>
+  </div>
+</section>
+
+<section class="game">
+  <aside class="panel">
+    <div class="panel-head">
+      <div><h2>SYMBOL DECK</h2><div class="sub">Pick a symbol</div></div>
+      <div class="count" id="symbolCount">6 left</div>
+    </div>
+    <div class="deck" id="symbolDeck"></div>
+  </aside>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div><h2>MATCH HERE</h2><div class="sub">Build six pairs</div></div>
+      <div class="count" id="matchCount">0 / 6</div>
+    </div>
+    <div class="slots" id="slots"></div>
+    <div class="controls">
+      <button class="btn primary" id="submit">Submit Answers</button>
+      <button class="btn" id="reset">Reset</button>
+      <button class="btn" id="shuffle">Shuffle</button>
+      <div class="tip">Tap a symbol, then tap its matching name.</div>
+    </div>
+    <div class="result" id="result" aria-live="polite"></div>
+  </section>
+
+  <aside class="panel">
+    <div class="panel-head">
+      <div><h2>NAMES</h2><div class="sub">Pick the matching name</div></div>
+      <div class="count" id="nameCount">6 left</div>
+    </div>
+    <div class="deck" id="nameDeck"></div>
+  </aside>
+</section>
+<div class="footer">Adinkra Match Game · Built for learning Ghanaian-Akan Adinkra symbols</div>
+</main>
+
+<script>
+const symbols={
+duafe:`<svg viewBox="0 0 100 100" aria-label="Duafe"><g fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="50" cy="24" rx="29" ry="17"/><path d="M42 38v12H25c-8 0-12 5-12 13v23M58 38v12h17c8 0 12 5 12 13v23M30 50v36M43 50v36M57 50v36M70 50v36"/></g><path d="M43 20c0-7 4-12 7-12s7 5 7 12-4 12-7 12-7-5-7-12z" fill="currentColor"/></svg>`,
+osrane:`<svg viewBox="0 0 100 100" aria-label="Osrane"><path d="M16 26C12 55 29 79 51 84c19 4 40-5 49-25-11 8-23 11-35 9-25-4-42-21-49-42z" fill="currentColor"/></svg>`,
+nyansapo:`<svg viewBox="0 0 100 100" aria-label="Nyansapo"><g fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M42 6v88M58 6v88"/><path d="M42 25C22 26 14 39 15 52c1 13 10 22 27 23M58 25c20 1 28 14 27 27-1 13-10 22-27 23"/><path d="M42 48c-18 0-28 10-28 21 0 13 10 22 28 23M58 48c18 0 28 10 28 21 0 13-10 22-28 23"/></g></svg>`,
+atwedee:`<svg viewBox="0 0 100 100" aria-label="Owuo Atwedee"><g fill="currentColor"><rect x="19" y="7" width="13" height="86"/><rect x="68" y="7" width="13" height="86"/><rect x="25" y="17" width="50" height="11"/><rect x="25" y="41" width="50" height="11"/><rect x="25" y="65" width="50" height="11"/></g></svg>`,
+epa:`<svg viewBox="0 0 100 100" aria-label="Epa"><g fill="none" stroke="currentColor" stroke-width="9"><path d="M5 50L34 21l32 29-32 29z"/><path d="M95 50L66 21 34 50l32 29z"/></g></svg>`,
+kintinkantan:`<svg viewBox="0 0 100 100" aria-label="Kintinkantan"><g fill="none" stroke="currentColor" stroke-width="8"><circle cx="30" cy="30" r="23"/><circle cx="70" cy="30" r="23"/><circle cx="30" cy="70" r="23"/><circle cx="70" cy="70" r="23"/><circle cx="50" cy="50" r="22"/></g></svg>`
+};
+
+const items=[
+{id:"duafe",name:"DUAFE",meaning:"Beauty"},
+{id:"osrane",name:"OSRANE",meaning:"Crescent"},
+{id:"nyansapo",name:"NYANSAPO",meaning:"Wisdom"},
+{id:"atwedee",name:"OWUO ATWEDEE",meaning:"Mortality"},
+{id:"epa",name:"EPA",meaning:"Justice"},
+{id:"kintinkantan",name:"KINTINKANTAN",meaning:"Arrogance"}
+];
+
+let symbolOrder=[],nameOrder=[],pairs=[],selectedSymbol=null,selectedName=null;
+const $=s=>document.querySelector(s);
+const shuffle=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b};
+const nameHtml=i=>`<div class="name"><strong>${i.name}</strong><span>${i.meaning}</span></div>`;
+
+function start(doShuffle=true){
+  pairs=[]; selectedSymbol=null; selectedName=null;
+  symbolOrder=doShuffle?shuffle(items):[...items];
+  nameOrder=doShuffle?shuffle(items):[...items];
+  $("#result").className="result";
+  $("#result").innerHTML="";
+  render();
+}
+
+function render(){
+  const usedS=new Set(pairs.map(x=>x.symbol));
+  const usedN=new Set(pairs.map(x=>x.name));
+
+  $("#symbolDeck").innerHTML=symbolOrder.map(i=>`
+  <button class="card symbol ${selectedSymbol===i.id?'selected':''} ${usedS.has(i.id)?'used':''}" data-symbol="${i.id}" draggable="true" aria-label="Select symbol">
+  ${symbols[i.id]}</button>`).join("");
+
+  $("#nameDeck").innerHTML=nameOrder.map(i=>`
+  <button class="card name ${selectedName===i.id?'selected':''} ${usedN.has(i.id)?'used':''}" data-name="${i.id}" draggable="true">
+  <strong>${i.name}</strong><span>${i.meaning}</span></button>`).join("");
+
+  $("#slots").innerHTML=Array.from({length:6},(_,idx)=>{
+    const p=pairs[idx];
+    return `<div class="slot ${p?'ready':''}" data-slot="${idx}">
+      <div class="slotpart symbol">${p?symbols[p.symbol]:'<span class="placeholder">Symbol</span>'}</div>
+      <div class="slotpart">${p?nameHtml(items.find(x=>x.id===p.name)):'<span class="placeholder">Name + meaning</span>'}</div>
+    </div>`;
+  }).join("");
+
+  $("#symbolCount").textContent=(6-usedS.size)+" left";
+  $("#nameCount").textContent=(6-usedN.size)+" left";
+  $("#matchCount").textContent=pairs.length+" / 6";
+  bindCards();
+}
+
+function bindCards(){
+  document.querySelectorAll("[data-symbol]").forEach(b=>{
+    b.addEventListener("click",()=>{selectedSymbol=b.dataset.symbol; render(); tryPair();});
+    b.addEventListener("dragstart",e=>e.dataTransfer.setData("text/symbol",b.dataset.symbol));
+  });
+  document.querySelectorAll("[data-name]").forEach(b=>{
+    b.addEventListener("click",()=>{selectedName=b.dataset.name; render(); tryPair();});
+    b.addEventListener("dragstart",e=>e.dataTransfer.setData("text/name",b.dataset.name));
+  });
+  document.querySelectorAll(".slot").forEach(s=>{
+    s.addEventListener("dragover",e=>e.preventDefault());
+    s.addEventListener("drop",e=>{
+      e.preventDefault();
+      const sym=e.dataTransfer.getData("text/symbol");
+      const nam=e.dataTransfer.getData("text/name");
+      if(sym) selectedSymbol=sym;
+      if(nam) selectedName=nam;
+      tryPair();
+    });
+  });
+}
+
+function tryPair(){
+  if(selectedSymbol && selectedName){
+    pairs.push({symbol:selectedSymbol,name:selectedName});
+    selectedSymbol=null; selectedName=null;
+    render();
+  }
+}
+
+$("#submit").addEventListener("click",()=>{
+  const result=$("#result");
+  if(pairs.length<6){
+    result.className="result show";
+    result.innerHTML=`<strong>Complete all six matches first.</strong><div class="sub">You currently have ${pairs.length} of 6 pairs.</div>`;
+    return;
+  }
+  let score=0;
+  document.querySelectorAll(".slot").forEach((s,i)=>{
+    const ok=pairs[i].symbol===pairs[i].name;
+    if(ok) score++;
+    s.classList.add(ok?"correct":"wrong");
+  });
+  const pct=Math.round(score/6*100);
+  const achievement=score===6?"Adinkra Master 🏆":score>=4?"Symbol Scholar 🌟":score>=2?"Culture Explorer 🌿":"Keep Learning 📚";
+  result.className="result show";
+  result.innerHTML=`<div class="resultrow"><div><div class="sub">YOUR SCORE</div><div class="big">${score}/6</div><strong>${achievement}</strong></div><div style="text-align:right"><div class="big">${pct}%</div><div class="sub">${score===6?'Perfect match!':'Green = correct · Red = incorrect'}</div></div></div>`;
+});
+$("#reset").addEventListener("click",()=>start(false));
+$("#shuffle").addEventListener("click",()=>start(true));
+start(true);
+</script>
+</body>
+</html>
