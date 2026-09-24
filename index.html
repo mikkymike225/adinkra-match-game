@@ -37,8 +37,8 @@ h1{margin:6px 0 8px;font-size:clamp(2rem,4vw,3.6rem);line-height:.98}
 .card.selected{outline:3px solid var(--gold);background:#fff8dc}
 .card.used{opacity:.25;pointer-events:none}
 .card.symbol{min-height:96px;padding:12px}
-.symbol svg{width:74px;height:74px;display:block;color:#171717}
-.slotpart.symbol svg{width:60px;height:60px}
+.symbol svg,.symbol img{width:74px;height:74px;display:block;object-fit:contain;color:#171717}
+.slotpart.symbol svg,.slotpart.symbol img{width:60px;height:60px;object-fit:contain}
 .name{flex-direction:column;text-align:center}
 button.card.name{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:90px;padding:12px}
 .name strong{display:block;width:100%;font-size:.86rem;line-height:1.1}
@@ -72,7 +72,7 @@ button.card.name{display:flex;flex-direction:column;align-items:center;justify-c
   .deck{grid-template-columns:repeat(2,minmax(0,1fr))}
   .slot{grid-template-columns:76px minmax(0,1fr)}
   .card.symbol{min-height:88px;padding:10px}
-.symbol svg{width:62px;height:62px}
+.symbol svg,.symbol img{width:62px;height:62px}
 button.card.name{min-height:84px;padding:10px 7px}
 .name strong{font-size:.8rem}
 .name span{font-size:.72rem}
