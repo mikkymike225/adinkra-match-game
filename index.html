@@ -332,10 +332,10 @@ $("#reset").addEventListener("click",()=>start(false));
 $("#shuffle").addEventListener("click",()=>start(true));
 
 const puzzleLevels={
-  2:{title:"LEVEL 2 · BOARD 1",src:"assets/levels/level-2.jpg"},
-  3:{title:"LEVEL 3 · BOARD 2",src:"assets/levels/level-3.jpg"},
-  4:{title:"LEVEL 4 · BOARD 3",src:"assets/levels/level-4.jpg"},
-  5:{title:"LEVEL 5 · BOARD 4",src:"assets/levels/level-5.jpg"}
+  2:{title:"LEVEL 2 · BOARD 1",src:"assets/levels/level-2.jpg",ratio:"694 / 1035"},
+  3:{title:"LEVEL 3 · BOARD 2",src:"assets/levels/level-3.jpg",ratio:"723 / 1035"},
+  4:{title:"LEVEL 4 · BOARD 3",src:"assets/levels/level-4.jpg",ratio:"694 / 1035"},
+  5:{title:"LEVEL 5 · BOARD 4",src:"assets/levels/level-5.jpg",ratio:"723 / 1035"}
 };
 const puzzleTileCache={};
 let activePuzzleLevel=2,puzzleHidden=[],puzzleQueue=[],puzzlePlaced=new Set(),currentPieceSelected=false;
@@ -369,6 +369,7 @@ function setFeedback(message,kind){
 }
 async function setupPuzzle(level){
   activePuzzleLevel=level;
+  puzzleGrid.style.aspectRatio=puzzleLevels[level].ratio;
   $("#puzzleTitle").textContent=puzzleLevels[level].title;
   $("#puzzleInstructions").textContent="One tile from each symbol/name pair is missing. Put each shown piece back in its correct space.";
   $("#puzzleComplete").hidden=true;
@@ -458,7 +459,7 @@ $("#continueLevel").addEventListener("click",()=>{
 });
 document.querySelectorAll(".level-btn").forEach(b=>b.addEventListener("click",()=>chooseLevel(Number(b.dataset.level))));
 
-selectLevel(1);
+chooseLevel(1);
 start(true);
 </script>
 </body>
