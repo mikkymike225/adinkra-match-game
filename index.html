@@ -77,6 +77,44 @@ button.card.name{min-height:84px;padding:10px 7px}
 .name strong{font-size:.8rem}
 .name span{font-size:.72rem}
 }
+
+.level-select{margin-top:16px;padding:14px 16px;background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.level-select-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+.level-select h2{font-size:.92rem;letter-spacing:.06em;margin:0}
+.level-buttons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.level-btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:10px 8px;font-weight:800;cursor:pointer;min-height:44px}
+.level-btn[aria-pressed="true"]{background:#18120b;color:#fff;border-color:#18120b}
+.level-btn:hover{border-color:var(--gold)}
+.puzzle-game{margin-top:16px}
+.puzzle-layout{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:16px;align-items:start}
+.puzzle-board-shell{background:#171717;border-radius:16px;padding:12px;max-width:760px;margin:auto;width:100%}
+.puzzle-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(10,minmax(0,1fr));width:100%;aspect-ratio:694/1035;overflow:hidden;background:#eee}
+.puzzle-cell{position:relative;min-width:0;min-height:0;padding:0;border:0;border-radius:0;background:#f5f4ef;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.puzzle-cell img{width:100%;height:100%;display:block;object-fit:fill}
+.puzzle-cell.missing{background:#f6f3ea;border:1px dashed rgba(60,48,30,.3)}
+.puzzle-cell.missing:after{content:"";position:absolute;inset:5px;border:1px dashed rgba(60,48,30,.2);border-radius:5px;pointer-events:none}
+.puzzle-cell.missing:hover{background:#fff8dc}
+.puzzle-piece-panel{border:1px solid var(--line);background:#fff;border-radius:16px;padding:14px;position:sticky;top:14px}
+.puzzle-piece-panel h3{margin:0;font-size:.9rem}
+.puzzle-piece-note{font-size:.78rem;color:var(--muted);line-height:1.45;margin:6px 0 12px}
+.current-piece{width:100%;aspect-ratio:1.68;border:2px solid #d7c7a6;border-radius:10px;background:#faf8f2;display:flex;align-items:center;justify-content:center;padding:0;overflow:hidden;cursor:grab}
+.current-piece:active{cursor:grabbing}
+.current-piece.selected{outline:3px solid var(--gold);outline-offset:2px}
+.current-piece img{width:100%;height:100%;object-fit:fill;display:block}
+.piece-blank{font-size:.8rem;color:var(--muted);padding:12px;text-align:center}
+.puzzle-actions{display:grid;gap:8px;margin-top:10px}
+.puzzle-actions .btn{width:100%}
+.puzzle-feedback{min-height:38px;font-size:.78rem;color:var(--muted);margin-top:10px;line-height:1.4}
+.puzzle-feedback.good{color:#235d45;font-weight:800}
+.puzzle-feedback.bad{color:#8d2f2b;font-weight:800}
+.puzzle-complete{margin-top:14px;padding:16px;border-radius:14px;background:#f0faf5;border:1px solid #9ac8ae}
+.puzzle-complete h3{margin:0 0 5px}
+.puzzle-complete p{margin:0;color:var(--muted);font-size:.85rem}
+.puzzle-complete .btn{margin-top:10px}
+[hidden]{display:none!important}
+@media(max-width:800px){.puzzle-layout{grid-template-columns:1fr}.puzzle-piece-panel{position:static;display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:10px;align-items:center}.puzzle-piece-panel h3,.puzzle-piece-note{grid-column:1}.current-piece{grid-column:2;grid-row:1 / span 3}.puzzle-actions{grid-column:1;grid-row:3;grid-template-columns:1fr 1fr}.puzzle-feedback{grid-column:1 / -1}}
+@media(max-width:520px){.level-select{padding:12px}.level-buttons{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.level-btn{font-size:.76rem;padding:8px 3px}.puzzle-board-shell{padding:6px;border-radius:10px}.puzzle-piece-panel{grid-template-columns:minmax(0,1fr) 130px;padding:10px}.puzzle-actions .btn{padding:8px 10px;font-size:.78rem}}
+
 </style>
 </head>
 <body>
@@ -85,15 +123,26 @@ button.card.name{min-height:84px;padding:10px 7px}
   <div class="kente"></div>
   <div class="eyebrow">Ghanaian Adinkra Learning Game</div>
   <h1>Match the Adinkra Symbols</h1>
-  <p>Choose a symbol from the left and pair it with the correct Adinkra name and meaning on the right. Complete all six, then submit your answers.</p>
+  <p>Start with Level 1, then complete the four Adinkra puzzle boards. Match the missing pieces and fill each board.</p>
   <div class="statusbar">
-    <div class="pill">6 symbols</div>
+    <div class="pill">5 levels</div>
     <div class="pill">Tap or drag</div>
     <div class="pill">Instant score</div>
   </div>
 </section>
 
-<section class="game">
+<section class="level-select" aria-label="Choose a game level">
+  <div class="level-select-head"><h2>CHOOSE LEVEL</h2><div class="count">Complete all five boards</div></div>
+  <div class="level-buttons">
+    <button class="level-btn" type="button" data-level="1" aria-pressed="true">Level 1</button>
+    <button class="level-btn" type="button" data-level="2" aria-pressed="false">Level 2</button>
+    <button class="level-btn" type="button" data-level="3" aria-pressed="false">Level 3</button>
+    <button class="level-btn" type="button" data-level="4" aria-pressed="false">Level 4</button>
+    <button class="level-btn" type="button" data-level="5" aria-pressed="false">Level 5</button>
+  </div>
+</section>
+
+<section class="game" id="levelOneGame">
   <aside class="panel">
     <div class="panel-head">
       <div><h2>SYMBOL DECK</h2><div class="sub">Pick a symbol</div></div>
@@ -125,6 +174,31 @@ button.card.name{min-height:84px;padding:10px 7px}
     <div class="deck" id="nameDeck"></div>
   </aside>
 </section>
+
+<section class="panel puzzle-game" id="puzzleGame" hidden>
+  <div class="panel-head">
+    <div><h2 id="puzzleTitle">LEVEL 2 · ADINKRA BOARD</h2><div class="sub" id="puzzleInstructions">Place the shown piece into its matching empty space.</div></div>
+    <div class="count" id="puzzleProgress">0 / 20 pieces placed</div>
+  </div>
+  <div class="puzzle-layout">
+    <div class="puzzle-board-shell"><div class="puzzle-grid" id="puzzleGrid" aria-label="Adinkra matching puzzle board"></div></div>
+    <aside class="puzzle-piece-panel">
+      <div><h3>Next missing piece</h3><div class="puzzle-piece-note">Drag this piece to its place. On a phone, tap the piece, then tap the matching empty space. Use “Next piece” if you want to skip it for now.</div></div>
+      <button type="button" class="current-piece" id="currentPiece" draggable="true" aria-label="Current puzzle piece"></button>
+      <div class="puzzle-actions">
+        <button type="button" class="btn primary" id="nextPiece">Next piece</button>
+        <button type="button" class="btn" id="restartPuzzle">Restart level</button>
+      </div>
+      <div class="puzzle-feedback" id="puzzleFeedback" aria-live="polite"></div>
+    </aside>
+  </div>
+  <div class="puzzle-complete" id="puzzleComplete" hidden>
+    <h3 id="completeTitle">Board complete!</h3>
+    <p>You placed all 20 missing pieces in their correct spaces.</p>
+    <button type="button" class="btn primary" id="continueLevel">Continue</button>
+  </div>
+</section>
+
 <div class="footer">Adinkra Match Game · Built for learning Ghanaian-Akan Adinkra symbols</div>
 </main>
 
@@ -256,6 +330,135 @@ $("#submit").addEventListener("click",()=>{
 });
 $("#reset").addEventListener("click",()=>start(false));
 $("#shuffle").addEventListener("click",()=>start(true));
+
+const puzzleLevels={
+  2:{title:"LEVEL 2 · BOARD 1",src:"assets/levels/level-2.jpg"},
+  3:{title:"LEVEL 3 · BOARD 2",src:"assets/levels/level-3.jpg"},
+  4:{title:"LEVEL 4 · BOARD 3",src:"assets/levels/level-4.jpg"},
+  5:{title:"LEVEL 5 · BOARD 4",src:"assets/levels/level-5.jpg"}
+};
+const puzzleTileCache={};
+let activePuzzleLevel=2,puzzleHidden=[],puzzleQueue=[],puzzlePlaced=new Set(),currentPieceSelected=false;
+const puzzleGrid=$("#puzzleGrid"),currentPiece=$("#currentPiece"),puzzleFeedback=$("#puzzleFeedback");
+async function getPuzzleTiles(level){
+  if(puzzleTileCache[level]) return puzzleTileCache[level];
+  const img=new Image();
+  img.src=puzzleLevels[level].src;
+  await img.decode();
+  const tileW=img.naturalWidth/4,tileH=img.naturalHeight/10;
+  const tiles=[];
+  for(let i=0;i<40;i++){
+    const col=i%4,row=Math.floor(i/4),canvas=document.createElement("canvas");
+    canvas.width=348;canvas.height=207;
+    const ctx=canvas.getContext("2d");
+    ctx.drawImage(img,col*tileW,row*tileH,tileW,tileH,0,0,canvas.width,canvas.height);
+    tiles.push(canvas.toDataURL("image/jpeg",.9));
+  }
+  puzzleTileCache[level]=tiles;
+  return tiles;
+}
+function chooseLevel(level){
+  document.querySelectorAll(".level-btn").forEach(b=>b.setAttribute("aria-pressed",String(Number(b.dataset.level)===level)));
+  $("#levelOneGame").hidden=level!==1;
+  $("#puzzleGame").hidden=level===1;
+  if(level>1) setupPuzzle(level);
+}
+function setFeedback(message,kind){
+  puzzleFeedback.textContent=message;
+  puzzleFeedback.className="puzzle-feedback"+(kind?" "+kind:"");
+}
+async function setupPuzzle(level){
+  activePuzzleLevel=level;
+  $("#puzzleTitle").textContent=puzzleLevels[level].title;
+  $("#puzzleInstructions").textContent="One tile from each symbol/name pair is missing. Put each shown piece back in its correct space.";
+  $("#puzzleComplete").hidden=true;
+  puzzlePlaced=new Set();
+  puzzleHidden=[];
+  for(let row=0;row<10;row++){
+    for(let pair=0;pair<2;pair++){
+      const left=row*4+pair*2,right=left+1;
+      const hideLeft=((row+pair+level)%2===0);
+      puzzleHidden.push(hideLeft?left:right);
+    }
+  }
+  puzzleQueue=shuffle(puzzleHidden);
+  currentPieceSelected=false;
+  setFeedback("Find the empty space that completes this pair.","");
+  await renderPuzzle();
+}
+async function renderPuzzle(){
+  const tiles=await getPuzzleTiles(activePuzzleLevel);
+  puzzleGrid.innerHTML=Array.from({length:40},(_,i)=>{
+    if(puzzlePlaced.has(i)) return '<div class="puzzle-cell filled" role="img" aria-label="Correctly placed Adinkra tile"><img src="'+tiles[i]+'" alt=""></div>';
+    if(puzzleHidden.includes(i)) return '<button type="button" class="puzzle-cell missing" data-target="'+i+'" aria-label="Empty puzzle space"></button>';
+    return '<div class="puzzle-cell fixed" role="img" aria-label="Adinkra board piece"><img src="'+tiles[i]+'" alt=""></div>';
+  }).join("");
+  $("#puzzleProgress").textContent=puzzlePlaced.size+" / 20 pieces placed";
+  updateCurrentPiece(tiles);
+  puzzleGrid.querySelectorAll("[data-target]").forEach(slot=>{
+    slot.addEventListener("click",()=>{
+      if(currentPieceSelected) tryPlacePiece(Number(slot.dataset.target));
+    });
+    slot.addEventListener("dragover",e=>e.preventDefault());
+    slot.addEventListener("drop",e=>{
+      e.preventDefault();
+      const target=Number(e.dataTransfer.getData("text/adinkra-piece"));
+      if(Number.isInteger(target)) tryPlacePiece(Number(slot.dataset.target),target);
+    });
+  });
+}
+function updateCurrentPiece(tiles){
+  currentPiece.classList.remove("selected");
+  currentPieceSelected=false;
+  if(!puzzleQueue.length){
+    currentPiece.draggable=false;
+    currentPiece.innerHTML='<span class="piece-blank">All missing pieces are placed.</span>';
+    return;
+  }
+  currentPiece.draggable=true;
+  const id=puzzleQueue[0];
+  currentPiece.dataset.target=String(id);
+  currentPiece.innerHTML='<img src="'+tiles[id]+'" alt="Piece to place">';
+}
+async function tryPlacePiece(slotId,pieceId){
+  if(!puzzleQueue.length) return;
+  const expected=puzzleQueue[0];
+  if(pieceId!==undefined && pieceId!==expected) return;
+  if(slotId!==expected){
+    setFeedback("That piece does not fit there. Try another empty space.","bad");
+    return;
+  }
+  puzzlePlaced.add(expected);
+  puzzleQueue.shift();
+  setFeedback("Correct match! Keep going.","good");
+  await renderPuzzle();
+  if(!puzzleQueue.length){
+    $("#puzzleComplete").hidden=false;
+    $("#completeTitle").textContent="Level "+activePuzzleLevel+" complete!";
+    $("#continueLevel").textContent=activePuzzleLevel<5?"Continue to Level "+(activePuzzleLevel+1):"Play Level 1 again";
+  }
+}
+$("#currentPiece").addEventListener("click",()=>{
+  if(!puzzleQueue.length) return;
+  currentPieceSelected=!currentPieceSelected;
+  currentPiece.classList.toggle("selected",currentPieceSelected);
+  setFeedback(currentPieceSelected?"Now tap the matching empty space on the board.":"Piece selection cleared.","");
+});
+$("#currentPiece").addEventListener("dragstart",e=>{
+  if(puzzleQueue.length) e.dataTransfer.setData("text/adinkra-piece",puzzleQueue[0]);
+});
+$("#nextPiece").addEventListener("click",async()=>{
+  if(puzzleQueue.length>1){puzzleQueue.push(puzzleQueue.shift());await renderPuzzle();setFeedback("Skipped for now. Here is the next piece.","");}
+});
+$("#restartPuzzle").addEventListener("click",()=>setupPuzzle(activePuzzleLevel));
+$("#continueLevel").addEventListener("click",()=>{
+  const next=activePuzzleLevel<5?activePuzzleLevel+1:1;
+  chooseLevel(next);
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+document.querySelectorAll(".level-btn").forEach(b=>b.addEventListener("click",()=>chooseLevel(Number(b.dataset.level))));
+
+selectLevel(1);
 start(true);
 </script>
 </body>
