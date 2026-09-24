@@ -366,7 +366,7 @@ const puzzleLevels={
 const boardColors=["#49a3d5","#a5cf4b","#eb2834","#f0c51c","#f07e24","#82c6ad","#362f85","#f3a5d0","#16c3d5","#c5be7c","#73cbbf","#9d45a8","#d14275","#f1b5c8","#657f8e","#30b862","#b58abc","#f4d20a","#079b5c","#3d5964"];
 const puzzleTileCache={},puzzleTileColors={};
 let activePuzzleLevel=2,puzzleHidden=[],placements={},selectedPiece=null,hasSubmitted=false;
-let unlockedLevel=Math.max(1,Number(localStorage.getItem("adinkraUnlockedLevel")||1));
+let unlockedLevel=Math.min(5,Math.max(1,Number(localStorage.getItem("adinkraUnlockedLevel")||1)));
 const puzzleGrid=$("#puzzleGrid"),pieceBank=$("#pieceBank"),puzzleFeedback=$("#puzzleFeedback");
 async function getPuzzleTiles(level){
   if(puzzleTileCache[level])return puzzleTileCache[level];
@@ -380,8 +380,8 @@ async function getPuzzleTiles(level){
     puzzleTileColors[level][symbolIndex]=color;puzzleTileColors[level][nameIndex]=color;
     const symbolCanvas=document.createElement("canvas");symbolCanvas.width=360;symbolCanvas.height=210;
     const sctx=symbolCanvas.getContext("2d");sctx.fillStyle=color;sctx.fillRect(0,0,360,210);
-    const gx=p%5,gy=Math.floor(p/5),pad=35;
-    sctx.drawImage(sprite,gx*cellW,gy*cellH,cellW,cellH,pad,pad,290,140);
+    const gx=p%5,gy=Math.floor(p/5);
+    sctx.drawImage(sprite,gx*cellW,gy*cellH,cellW,cellH,95,20,170,170);
     sctx.strokeStyle="rgba(31,26,20,.32)";sctx.lineWidth=2;sctx.strokeRect(1,1,358,208);
     tiles[symbolIndex]=symbolCanvas.toDataURL("image/webp",.9);
     const nameCanvas=document.createElement("canvas");nameCanvas.width=360;nameCanvas.height=210;
