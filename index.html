@@ -374,7 +374,7 @@ async function setupPuzzle(level){
   $("#puzzleInstructions").textContent="One tile from each symbol/name pair is missing. Put each shown piece back in its correct space.";
   $("#puzzleComplete").hidden=true;
   puzzlePlaced=new Set();
-  puzzleHidden=puzzleLevels[level].mask.map((col,rowPair)=>Math.floor(rowPair/2)*4+Math.floor(rowPair%2)*2+col);
+  puzzleHidden=puzzleLevels[level].mask.map((col,rowPair)=>Math.floor(rowPair/2)*4+col);
   puzzleQueue=shuffle(puzzleHidden);
   currentPieceSelected=false;
   setFeedback("Find the empty space that completes this pair.","");
