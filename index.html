@@ -454,7 +454,7 @@ async function renderPuzzle(){
     }
     return '<div class="puzzle-cell fixed" style="--piece-color:'+puzzleTileColors[activePuzzleLevel][i]+'" data-col="'+(i%4)+'" role="img" aria-label="Adinkra board tile"><img src="'+tiles[i]+'" alt=""></div>';
   }).join("");
-  pieceBank.innerHTML=puzzleHidden.filter(id=>!Object.values(placements).includes(id)).map(id=>'<button type="button" class="puzzle-piece '+(selectedPiece===id?"selected":"")+'" data-piece="'+id+'" style="--piece-color:'+puzzleTileColors[activePuzzleLevel][id]+'" draggable="true" aria-label="Piece '+(id+1)+'"><img src="'+tiles[id]+'" alt=""></button>').join("");
+  pieceBank.innerHTML=puzzleHidden.filter(id=>!Object.values(placements).includes(id)).map(id=>'<button type="button" class="puzzle-piece '+(selectedPiece===id?"selected":"")+'" data-piece="'+id+'" data-col="'+(id%4)+'" style="--piece-color:'+puzzleTileColors[activePuzzleLevel][id]+'" draggable="true" aria-label="Piece '+(id+1)+'"><img src="'+tiles[id]+'" alt=""></button>').join("");
   $("#puzzleProgress").textContent=Object.keys(placements).length+" / 20 pieces placed";
   pieceBank.querySelectorAll("[data-piece]").forEach(el=>{
     el.addEventListener("click",()=>{selectedPiece=Number(el.dataset.piece);renderPuzzle();setFeedback("Now choose any empty space. You can move pieces again before submitting.","");});
