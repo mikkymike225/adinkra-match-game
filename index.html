@@ -138,6 +138,13 @@ button.card.name{min-height:84px;padding:10px 7px}
 #submitPuzzle{grid-column:1/-1}
 @media(max-width:800px){.puzzle-piece-panel{position:static;display:block}.piece-bank{grid-template-columns:repeat(4,minmax(0,1fr));max-height:260px}}
 @media(max-width:520px){.puzzle-piece-panel{padding:10px}.piece-bank{grid-template-columns:repeat(3,minmax(0,1fr));max-height:220px}}
+
+/* Jigsaw tabs belong only on the right edge of the two symbol columns. */
+.puzzle-cell:before,.puzzle-cell:after,.puzzle-piece:before,.puzzle-piece:after{display:none!important}
+.puzzle-cell[data-col="0"]:after,.puzzle-cell[data-col="2"]:after,
+.puzzle-piece[data-col="0"]:after,.puzzle-piece[data-col="2"]:after{
+  display:block!important;left:auto;right:-9px;top:calc(50% - 9px);
+}
 </style>
 </head>
 <body>
@@ -443,9 +450,9 @@ async function renderPuzzle(){
     if(puzzleHidden.includes(i)){
       const piece=placements[i];
       const cls="puzzle-cell missing"+(piece!==undefined?" has-piece":"")+(hasSubmitted?(piece===i?" submitted-correct":" submitted-wrong"):"")+(selectedPiece!==null&&piece===selectedPiece?" selected":"");
-      return '<button type="button" class="'+cls+'" style="--piece-color:'+(piece!==undefined?puzzleTileColors[activePuzzleLevel][piece]:"#f5f4ef")+'" data-slot="'+i+'" aria-label="'+(piece===undefined?"Empty space":"Placed piece, tap to select")+'">'+(piece!==undefined?'<img draggable="true" data-board-piece="'+piece+'" src="'+tiles[piece]+'" alt="Placed piece">':"")+'</button>';
+      return '<button type="button" class="'+cls+'" style="--piece-color:'+(piece!==undefined?puzzleTileColors[activePuzzleLevel][piece]:"#f5f4ef")+'" data-col="'+(i%4)+'" data-slot="'+i+'" aria-label="'+(piece===undefined?"Empty space":"Placed piece, tap to select")+'">'+(piece!==undefined?'<img draggable="true" data-board-piece="'+piece+'" src="'+tiles[piece]+'" alt="Placed piece">':"")+'</button>';
     }
-    return '<div class="puzzle-cell fixed" style="--piece-color:'+puzzleTileColors[activePuzzleLevel][i]+'" role="img" aria-label="Adinkra board tile"><img src="'+tiles[i]+'" alt=""></div>';
+    return '<div class="puzzle-cell fixed" style="--piece-color:'+puzzleTileColors[activePuzzleLevel][i]+'" data-col="'+(i%4)+'" role="img" aria-label="Adinkra board tile"><img src="'+tiles[i]+'" alt=""></div>';
   }).join("");
   pieceBank.innerHTML=puzzleHidden.filter(id=>!Object.values(placements).includes(id)).map(id=>'<button type="button" class="puzzle-piece '+(selectedPiece===id?"selected":"")+'" data-piece="'+id+'" style="--piece-color:'+puzzleTileColors[activePuzzleLevel][id]+'" draggable="true" aria-label="Piece '+(id+1)+'"><img src="'+tiles[id]+'" alt=""></button>').join("");
   $("#puzzleProgress").textContent=Object.keys(placements).length+" / 20 pieces placed";
