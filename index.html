@@ -420,11 +420,12 @@ $("#submit").addEventListener("click",()=>{
     s.classList.add(ok?"correct":"wrong");
   });
   const pct=Math.round(score/6*100);
-  const achievement=score===6?"Adinkra Master 🏆":score>=4?"Symbol Scholar 🌟":score>=2?"Culture Explorer 🌿":"Keep Learning 📚";
+  const achievement=score===6?"Congratulations! Level 1 completed! 🎉":score>=4?"Symbol Scholar 🌟":score>=2?"Culture Explorer 🌿":"Keep Learning 📚";
   if(score===6){unlockedLevel=Math.max(unlockedLevel,2);localStorage.setItem("adinkraUnlockedLevel",String(unlockedLevel));updateLevelButtons();}
   result.className="result show";
   result.innerHTML=`<div class="resultrow"><div><div class="sub">YOUR SCORE</div><div class="big">${score}/6</div><strong>${achievement}</strong></div><div style="text-align:right"><div class="big">${pct}%</div><div class="sub">${score===6?'Perfect match!':'Green = correct · Red = incorrect'}</div></div></div>`;
   if(score===6){
+    const note=document.createElement("div");note.className="sub";note.textContent="Level 2 is now unlocked.";result.appendChild(note);
     const next=document.createElement("button");next.className="btn primary";next.textContent="Continue to Level 2";
     next.addEventListener("click",()=>chooseLevel(2));result.appendChild(next);
   }else{
@@ -557,8 +558,8 @@ async function submitPuzzle(){
   hasSubmitted=true;await renderPuzzle();
   if(correct===total){
     unlockedLevel=Math.max(unlockedLevel,Math.min(5,activePuzzleLevel+1));localStorage.setItem("adinkraUnlockedLevel",String(unlockedLevel));updateLevelButtons();
-    $("#puzzleComplete").hidden=false;$("#completeTitle").textContent="Perfect score: "+score+" / 40!";
-    $("#completeMessage").textContent=activePuzzleLevel<5?"You got every piece correct. Level "+(activePuzzleLevel+1)+" is now unlocked.":"Perfect! You completed all five levels.";
+    $("#puzzleComplete").hidden=false;$("#completeTitle").textContent="Congratulations! Level "+activePuzzleLevel+" completed! 🎉";
+    $("#completeMessage").textContent=activePuzzleLevel<5?"Perfect score: "+score+" / 40. Level "+(activePuzzleLevel+1)+" is now unlocked.":"Perfect score: "+score+" / 40. You completed all five levels!";
     $("#continueLevel").textContent=activePuzzleLevel<5?"Continue to Level "+(activePuzzleLevel+1):"Play Level 1 again";
     setFeedback("Perfect score! The next level is unlocked.","good");
   }else{
