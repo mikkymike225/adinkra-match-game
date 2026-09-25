@@ -165,6 +165,26 @@ button.card.name{min-height:84px;padding:10px 7px}
   display:none!important;content:none!important;
 }
 .puzzle-cell.missing.has-piece{border:0!important}
+
+/* Alternating jigsaw edges: sockets on columns 1 and 3, tabs on columns 2 and 4. */
+.puzzle-grid{overflow:visible}
+.puzzle-cell,.puzzle-piece{overflow:visible;position:relative}
+.puzzle-cell[data-col="0"]:after,.puzzle-cell[data-col="2"]:after,
+.puzzle-cell.missing.has-piece[data-col="0"]:after,.puzzle-cell.missing.has-piece[data-col="2"]:after,
+.puzzle-piece[data-col="0"]:after,.puzzle-piece[data-col="2"]:after{
+  content:""!important;display:block!important;position:absolute;z-index:6;
+  width:22px;height:22px;left:auto;right:-11px;top:calc(50% - 11px);
+  border:1px solid rgba(40,40,40,.55);border-radius:50%;
+  background:#fff!important;pointer-events:none;
+}
+.puzzle-cell[data-col="1"]:before,.puzzle-cell[data-col="3"]:before,
+.puzzle-cell.missing.has-piece[data-col="1"]:before,.puzzle-cell.missing.has-piece[data-col="3"]:before,
+.puzzle-piece[data-col="1"]:before,.puzzle-piece[data-col="3"]:before{
+  content:""!important;display:block!important;position:absolute;z-index:7;
+  width:22px;height:22px;left:-11px;right:auto;top:calc(50% - 11px);
+  border:1px solid rgba(40,40,40,.55);border-radius:50%;
+  background:var(--piece-color,#fff)!important;pointer-events:none;
+}
 </style>
 </head>
 <body>
@@ -471,7 +491,7 @@ async function renderPuzzle(){
     if(puzzleHidden.includes(i)){
       const piece=placements[i];
       const cls="puzzle-cell missing"+(piece!==undefined?" has-piece":"")+(hasSubmitted?(piece===i?" submitted-correct":" submitted-wrong"):"")+(selectedPiece!==null&&piece===selectedPiece?" selected":"");
-      return '<button type="button" class="'+cls+'" style="--piece-color:'+(piece!==undefined?puzzleTileColors[activePuzzleLevel][piece]:"#f5f4ef")+';--tab-color:'+(piece!==undefined?tabColor(piece):tabColor(i))+'" data-col="'+(i%4)+'" data-slot="'+i+'" aria-label="'+(piece===undefined?"Empty space":"Placed piece, tap to select")+'">'+(piece!==undefined?'<img draggable="true" data-board-piece="'+piece+'" src="'+tiles[piece]+'" alt="Placed piece">':"")+'</button>';
+      return '<button type="button" class="'+cls+'" style="--piece-color:'+(piece!==undefined?puzzleTileColors[activePuzzleLevel][piece]:"#fff")+';--tab-color:'+(piece!==undefined?tabColor(piece):tabColor(i))+'" data-col="'+(i%4)+'" data-slot="'+i+'" aria-label="'+(piece===undefined?"Empty space":"Placed piece, tap to select")+'">'+(piece!==undefined?'<img draggable="true" data-board-piece="'+piece+'" src="'+tiles[piece]+'" alt="Placed piece">':"")+'</button>';
     }
     return '<div class="puzzle-cell fixed" style="--piece-color:'+puzzleTileColors[activePuzzleLevel][i]+';--tab-color:'+tabColor(i)+'" data-col="'+(i%4)+'" role="img" aria-label="Adinkra board tile"><img src="'+tiles[i]+'" alt=""></div>';
   }).join("");
