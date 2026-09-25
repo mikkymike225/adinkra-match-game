@@ -150,6 +150,13 @@ button.card.name{min-height:84px;padding:10px 7px}
 .puzzle-piece[data-col="0"]:after,.puzzle-piece[data-col="2"]:after{
   background:var(--piece-color,#f5f4ef)!important;
 }
+
+/* Reference board: white gaps, colored symbol tiles, and plain name rectangles. */
+.puzzle-cell.missing,.puzzle-cell.missing.has-piece{background:#fff!important;border:0!important}
+.puzzle-cell.missing:not(.has-piece){background:#fff!important}
+.puzzle-piece[data-col="1"],.puzzle-piece[data-col="3"]{
+  border:0!important;border-radius:0!important;
+}
 </style>
 </head>
 <body>
@@ -410,7 +417,7 @@ async function getPuzzleTiles(level){
     tiles[symbolIndex]=symbolCanvas.toDataURL("image/webp",.9);
     const nameCanvas=document.createElement("canvas");nameCanvas.width=360;nameCanvas.height=210;
     const nctx=nameCanvas.getContext("2d");nctx.fillStyle=nameColor;nctx.fillRect(0,0,360,210);
-    nctx.strokeStyle="rgba(31,26,20,.32)";nctx.lineWidth=2;nctx.strokeRect(1,1,358,208);
+    
     nctx.fillStyle="#201c18";nctx.textAlign="center";nctx.textBaseline="middle";
     const words=pairs[p].split(" ");let fontSize=24,lines=[];
     while(fontSize>15){nctx.font=fontSize+"px Georgia,serif";lines=[];let line="";
