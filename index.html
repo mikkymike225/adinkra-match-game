@@ -247,6 +247,31 @@ button.card.name{min-height:84px;padding:10px 7px}
   content:none!important;display:none!important;width:0!important;height:0!important;
   border:0!important;background:transparent!important;
 }
+
+/* Open sockets: back the round fill with the neighbouring tile colour to prevent white slivers. */
+#puzzleGrid .puzzle-cell[data-col="0"]::before,
+#puzzleGrid .puzzle-cell[data-col="2"]::before{
+  content:""!important;display:block!important;position:absolute;z-index:4;
+  width:17px;height:34px;left:auto;right:-17px;top:calc(50% - 17px);bottom:auto;
+  border:0!important;border-radius:0!important;
+  background:var(--tab-color,#f5f4ef)!important;pointer-events:none;
+}
+#puzzleGrid .puzzle-cell[data-col="0"]::after,
+#puzzleGrid .puzzle-cell[data-col="2"]::after{
+  content:""!important;display:block!important;position:absolute;z-index:6;
+  width:34px;height:34px;left:auto;right:-17px;top:calc(50% - 17px);bottom:auto;
+  border:0!important;border-radius:50%;
+  background:var(--tab-color,#f5f4ef)!important;pointer-events:none;
+}
+#puzzleGrid .puzzle-cell[data-col="1"]::before,
+#puzzleGrid .puzzle-cell[data-col="3"]::before{
+  content:""!important;display:block!important;position:absolute;z-index:8;
+  width:34px;height:34px;left:-17px;right:auto;top:calc(50% - 17px);bottom:auto;
+  border:0!important;border-radius:50%;
+  background:var(--piece-color,#f5f4ef)!important;pointer-events:none;
+}
+#puzzleGrid .puzzle-cell[data-col="1"]::after,
+#puzzleGrid .puzzle-cell[data-col="3"]::after{content:none!important;display:none!important}
 </style>
 </head>
 <body>
