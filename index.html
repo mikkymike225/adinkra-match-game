@@ -240,6 +240,13 @@ button.card.name{min-height:84px;padding:10px 7px}
 .puzzle-piece:before,.puzzle-piece:after{display:none!important;content:none!important}
 .puzzle-cell.submitted-correct,.puzzle-cell.submitted-wrong{outline-offset:-2px}
 @media(max-width:520px){.puzzle-board-shell{padding:6px;border-radius:10px}}
+
+/* Tray cards are always plain rectangles. This override intentionally outranks older connector rules. */
+#pieceBank .puzzle-piece[data-col]:before,
+#pieceBank .puzzle-piece[data-col]:after{
+  content:none!important;display:none!important;width:0!important;height:0!important;
+  border:0!important;background:transparent!important;
+}
 </style>
 </head>
 <body>
