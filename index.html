@@ -147,7 +147,10 @@ button.card.name{min-height:84px;padding:10px 7px}
 }
 
 .puzzle-cell[data-col="0"]:after,.puzzle-cell[data-col="2"]:after,
-.puzzle-piece[data-col="0"]:after,.puzzle-piece[data-col="2"]:after{background:var(--tab-color,#f5f4ef)!important}
+.puzzle-piece[data-col="0"]:after,.puzzle-piece[data-col="2"]:after,
+.puzzle-cell.missing.has-piece[data-col="0"]:after,.puzzle-cell.missing.has-piece[data-col="2"]:after{
+  background:var(--piece-color,#f5f4ef)!important;
+}
 </style>
 </head>
 <body>
