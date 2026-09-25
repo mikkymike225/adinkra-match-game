@@ -108,6 +108,7 @@ button.card.name{min-height:84px;padding:10px 7px}
 .puzzle-feedback.good{color:#235d45;font-weight:800}
 .puzzle-feedback.bad{color:#8d2f2b;font-weight:800}
 .puzzle-complete{margin-top:14px;padding:16px;border-radius:14px;background:#f0faf5;border:1px solid #9ac8ae}
+.puzzle-complete.retry{background:#fffaf0;border-color:var(--line)}
 .puzzle-complete h3{margin:0 0 5px}
 .puzzle-complete p{margin:0;color:var(--muted);font-size:.85rem}
 .puzzle-complete .btn{margin-top:10px}
@@ -122,8 +123,8 @@ button.card.name{min-height:84px;padding:10px 7px}
 .puzzle-piece img{width:100%;height:100%;object-fit:fill;display:block}
 .puzzle-cell.missing.has-piece{border-style:solid;border-color:#d7c7a6;padding:0}
 .puzzle-cell.missing.has-piece img{width:100%;height:100%;object-fit:fill;display:block}
-.puzzle-cell.submitted-correct{outline:3px solid #3d8966;outline-offset:-3px}
-.puzzle-cell.submitted-wrong{outline:3px solid #bd5a52;outline-offset:-3px}
+
+
 .puzzle-cell.missing.selected{outline:3px solid var(--gold);outline-offset:-3px}
 .puzzle-grid{overflow:visible}
 .puzzle-cell{position:relative;overflow:visible;z-index:1}
@@ -238,7 +239,7 @@ button.card.name{min-height:84px;padding:10px 7px}
 .puzzle-cell.fixed img,.puzzle-cell.missing.has-piece img{position:relative;z-index:1}
 .puzzle-piece{border:0!important;border-radius:0!important;background:transparent!important}
 .puzzle-piece:before,.puzzle-piece:after{display:none!important;content:none!important}
-.puzzle-cell.submitted-correct,.puzzle-cell.submitted-wrong{outline-offset:-2px}
+
 @media(max-width:520px){.puzzle-board-shell{padding:6px;border-radius:10px}}
 
 /* Tray cards are always plain rectangles. This override intentionally outranks older connector rules. */
@@ -347,12 +348,12 @@ button.card.name{min-height:84px;padding:10px 7px}
         <button type="button" class="btn" id="restartPuzzle">Restart level</button>
       </div>
       <div class="puzzle-feedback" id="puzzleFeedback" aria-live="polite"></div>
+      <div class="puzzle-complete" id="puzzleComplete" hidden>
+        <h3 id="completeTitle">Board complete!</h3>
+        <p id="completeMessage"></p>
+        <button type="button" class="btn primary" id="continueLevel">Continue</button>
+      </div>
     </aside>
-  </div>
-  <div class="puzzle-complete" id="puzzleComplete" hidden>
-    <h3 id="completeTitle">Board complete!</h3>
-    <p id="completeMessage"></p>
-    <button type="button" class="btn primary" id="continueLevel">Continue</button>
   </div>
 </section>
 
@@ -519,7 +520,7 @@ function tileColor(level,index){
 }
 function tabColor(index){const col=index%4;if(col!==0&&col!==2)return "#f5f4ef";const partner=index+1;if(partner>=40)return "#f5f4ef";if(puzzleHidden.includes(partner)){const placed=placements[partner];return placed===undefined?"#f5f4ef":puzzleTileColors[activePuzzleLevel][placed];}return puzzleTileColors[activePuzzleLevel][partner];}
 const puzzleTileCache={},puzzleTileColors={};
-let activePuzzleLevel=2,puzzleHidden=[],placements={},selectedPiece=null,hasSubmitted=false;
+let activePuzzleLevel=2,puzzleHidden=[],placements={},selectedPiece=null,lastPuzzlePassed=false;
 let unlockedLevel=Math.min(5,Math.max(1,Number(localStorage.getItem("adinkraUnlockedLevel")||1)));
 const puzzleGrid=$("#puzzleGrid"),pieceBank=$("#pieceBank"),puzzleFeedback=$("#puzzleFeedback");
 async function getPuzzleTiles(level){
@@ -581,7 +582,7 @@ async function setupPuzzle(level){
   activePuzzleLevel=level;puzzleGrid.style.aspectRatio=puzzleLevels[level].ratio;
   $("#puzzleTitle").textContent=puzzleLevels[level].title;
   $("#puzzleInstructions").textContent="For each pair, the symbol or its name is randomly missing. The mixed pieces keep their original colors and puzzle shape. Place them freely, then submit.";
-  $("#puzzleComplete").hidden=true;placements={};selectedPiece=null;hasSubmitted=false;
+  $("#puzzleComplete").hidden=true;placements={};selectedPiece=null;lastPuzzlePassed=false;
   const missingKinds=shuffle([...Array(10).fill("symbol"),...Array(10).fill("name")]);
   puzzleHidden=shuffle(Array.from({length:20},(_,p)=>{
     const row=Math.floor(p/2),pairInRow=p%2,si=row*4+pairInRow*2;
@@ -594,7 +595,7 @@ async function renderPuzzle(){
   puzzleGrid.innerHTML=Array.from({length:40},(_,i)=>{
     if(puzzleHidden.includes(i)){
       const piece=placements[i];
-      const cls="puzzle-cell missing"+(piece!==undefined?" has-piece":"")+(hasSubmitted?(piece===i?" submitted-correct":" submitted-wrong"):"")+(selectedPiece!==null&&piece===selectedPiece?" selected":"");
+      const cls="puzzle-cell missing"+(piece!==undefined?" has-piece":"")+(selectedPiece!==null&&piece===selectedPiece?" selected":"");
       return '<button type="button" class="'+cls+'" style="--piece-color:'+(piece!==undefined?puzzleTileColors[activePuzzleLevel][piece]:"#f5f4ef")+';--tab-color:'+(piece!==undefined?tabColor(piece):tabColor(i))+'" data-col="'+(i%4)+'" data-slot="'+i+'" aria-label="'+(piece===undefined?"Empty space":"Placed piece, tap to select")+'">'+(piece!==undefined?'<img draggable="true" data-board-piece="'+piece+'" src="'+tiles[piece]+'" alt="Placed piece">':"")+'</button>';
     }
     return '<div class="puzzle-cell fixed" style="--piece-color:'+puzzleTileColors[activePuzzleLevel][i]+';--tab-color:'+tabColor(i)+'" data-col="'+(i%4)+'" role="img" aria-label="Adinkra board tile"><img src="'+tiles[i]+'" alt=""></div>';
@@ -611,7 +612,7 @@ async function renderPuzzle(){
     slot.addEventListener("click",()=>{
       const id=Number(slot.dataset.slot);
       if(selectedPiece!==null){placePuzzlePiece(id,selectedPiece);return;}
-      if(placements[id]!==undefined){selectedPiece=placements[id];delete placements[id];hasSubmitted=false;$("#puzzleComplete").hidden=true;renderPuzzle();setFeedback("Piece picked up. Choose another empty space.","");}
+      if(placements[id]!==undefined){selectedPiece=placements[id];delete placements[id];$("#puzzleComplete").hidden=true;renderPuzzle();setFeedback("Piece picked up. Choose another empty space.","");}
     });
     const img=slot.querySelector("[data-board-piece]");if(img)img.addEventListener("dragstart",e=>e.dataTransfer.setData("text/piece",img.dataset.boardPiece));
   });
@@ -619,27 +620,29 @@ async function renderPuzzle(){
 function placePuzzlePiece(slotId,pieceId){
   const oldSlot=Object.keys(placements).find(key=>placements[key]===pieceId);if(oldSlot!==undefined)delete placements[oldSlot];
   const displaced=placements[slotId];if(displaced!==undefined)delete placements[slotId];
-  placements[slotId]=pieceId;selectedPiece=displaced!==undefined?displaced:null;hasSubmitted=false;$("#puzzleComplete").hidden=true;
+  placements[slotId]=pieceId;selectedPiece=displaced!==undefined?displaced:null;$("#puzzleComplete").hidden=true;
   renderPuzzle();setFeedback("Piece placed. Keep arranging, then submit for your score.","");
 }
 async function submitPuzzle(){
   const correct=Object.entries(placements).filter(([slot,piece])=>Number(slot)===piece).length;
-  const total=puzzleHidden.length,score=(40-total)+correct,pct=Math.round(score/40*100),filled=Object.keys(placements).length;
-  hasSubmitted=true;await renderPuzzle();
-  if(correct===total){
+  const total=puzzleHidden.length,score=(40-total)+correct,pct=Math.round(score/40*100);
+  await renderPuzzle();
+  lastPuzzlePassed=correct===total;
+  if(lastPuzzlePassed){
     unlockedLevel=Math.max(unlockedLevel,Math.min(5,activePuzzleLevel+1));localStorage.setItem("adinkraUnlockedLevel",String(unlockedLevel));updateLevelButtons();
-    $("#puzzleComplete").hidden=false;$("#completeTitle").textContent="Congratulations! Level "+activePuzzleLevel+" completed! 🎉";
+    $("#puzzleComplete").className="puzzle-complete";$("#puzzleComplete").hidden=false;$("#completeTitle").textContent="Congratulations! Level "+activePuzzleLevel+" completed! 🎉";
     $("#completeMessage").textContent=activePuzzleLevel<5?"Perfect score: "+score+" / 40. Level "+(activePuzzleLevel+1)+" is now unlocked.":"Perfect score: "+score+" / 40. You completed all five levels!";
     $("#continueLevel").textContent=activePuzzleLevel<5?"Continue to Level "+(activePuzzleLevel+1):"Play Level 1 again";
     setFeedback("Perfect score! The next level is unlocked.","good");
   }else{
-    $("#puzzleComplete").hidden=true;
-    setFeedback("Score: "+score+" / 40 ("+pct+"%). "+(filled<total?"Place the remaining pieces, then submit again.":"Move the red pieces and submit again. You need 100% to unlock the next level."),"bad");
+    $("#puzzleComplete").className="puzzle-complete retry";$("#puzzleComplete").hidden=false;
+    $("#completeTitle").textContent="Try again";$("#completeMessage").textContent="Score: "+score+" / 40 ("+pct+"%).";$("#continueLevel").textContent="Try again";
+    setFeedback("","");
   }
 }
 $("#submitPuzzle").addEventListener("click",submitPuzzle);
 $("#restartPuzzle").addEventListener("click",()=>setupPuzzle(activePuzzleLevel));
-$("#continueLevel").addEventListener("click",()=>{const next=activePuzzleLevel<5?activePuzzleLevel+1:1;chooseLevel(next);window.scrollTo({top:0,behavior:"smooth"});});
+$("#continueLevel").addEventListener("click",()=>{if(!lastPuzzlePassed){setupPuzzle(activePuzzleLevel);window.scrollTo({top:0,behavior:"smooth"});return;}const next=activePuzzleLevel<5?activePuzzleLevel+1:1;chooseLevel(next);window.scrollTo({top:0,behavior:"smooth"});});
 document.querySelectorAll(".level-btn").forEach(b=>b.addEventListener("click",()=>chooseLevel(Number(b.dataset.level))));
 updateLevelButtons();
 chooseLevel(1);
