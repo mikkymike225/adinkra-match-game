@@ -173,7 +173,7 @@ button.card.name{min-height:84px;padding:10px 7px}
 .puzzle-cell.missing.has-piece[data-col="0"]:after,.puzzle-cell.missing.has-piece[data-col="2"]:after,
 .puzzle-piece[data-col="0"]:after,.puzzle-piece[data-col="2"]:after{
   content:""!important;display:block!important;position:absolute;z-index:6;
-  width:22px;height:22px;left:auto;right:-11px;top:calc(50% - 11px);
+  width:22px;height:22px;inset:auto;left:auto;right:-11px;top:calc(50% - 11px);bottom:auto;
   border:1px solid rgba(40,40,40,.55);border-radius:50%;
   background:#fff!important;pointer-events:none;
 }
@@ -181,7 +181,7 @@ button.card.name{min-height:84px;padding:10px 7px}
 .puzzle-cell.missing.has-piece[data-col="1"]:before,.puzzle-cell.missing.has-piece[data-col="3"]:before,
 .puzzle-piece[data-col="1"]:before,.puzzle-piece[data-col="3"]:before{
   content:""!important;display:block!important;position:absolute;z-index:7;
-  width:22px;height:22px;left:-11px;right:auto;top:calc(50% - 11px);
+  width:22px;height:22px;inset:auto;left:-11px;right:auto;top:calc(50% - 11px);bottom:auto;
   border:1px solid rgba(40,40,40,.55);border-radius:50%;
   background:var(--piece-color,#fff)!important;pointer-events:none;
 }
