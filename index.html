@@ -157,6 +157,14 @@ button.card.name{min-height:84px;padding:10px 7px}
 .puzzle-piece[data-col="1"],.puzzle-piece[data-col="3"]{
   border:0!important;border-radius:0!important;
 }
+
+/* Loose and placed missing tiles are plain rectangles without puzzle tabs. */
+.puzzle-piece{border:0!important;border-radius:0!important}
+.puzzle-piece:before,.puzzle-piece:after,
+.puzzle-cell.missing.has-piece:before,.puzzle-cell.missing.has-piece:after{
+  display:none!important;content:none!important;
+}
+.puzzle-cell.missing.has-piece{border:0!important}
 </style>
 </head>
 <body>
@@ -413,7 +421,7 @@ async function getPuzzleTiles(level){
     const sctx=symbolCanvas.getContext("2d");sctx.fillStyle=symbolColor;sctx.fillRect(0,0,360,210);
     const glyphIndex=glyphByName[pairs[p].toUpperCase()]??p,gx=glyphIndex%5,gy=Math.floor(glyphIndex/5);
     sctx.drawImage(sprite,gx*cellW,gy*cellH,cellW,cellH,95,20,170,170);
-    sctx.strokeStyle="rgba(31,26,20,.32)";sctx.lineWidth=2;sctx.strokeRect(1,1,358,208);
+    
     tiles[symbolIndex]=symbolCanvas.toDataURL("image/webp",.9);
     const nameCanvas=document.createElement("canvas");nameCanvas.width=360;nameCanvas.height=210;
     const nctx=nameCanvas.getContext("2d");nctx.fillStyle=nameColor;nctx.fillRect(0,0,360,210);
