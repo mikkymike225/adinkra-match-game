@@ -211,6 +211,35 @@ button.card.name{min-height:84px;padding:10px 7px}
   pointer-events:none;
 }
 .puzzle-piece:before,.puzzle-piece:after{display:none!important;content:none!important}
+
+/* Level 2 board finish: fitted sockets and tabs share a fill, with no seam outlines. */
+.puzzle-board-shell{overflow:hidden;border:1px solid #39352f;border-radius:14px;background:#191714;padding:10px;box-shadow:0 16px 34px rgba(20,16,10,.2)}
+.puzzle-grid{gap:0;background:#f5f4ef;overflow:hidden;isolation:isolate}
+.puzzle-cell{overflow:visible;z-index:1}
+.puzzle-cell.fixed{border:0}
+.puzzle-cell.missing,.puzzle-cell.missing.has-piece{background:#f5f4ef!important;border:0!important}
+.puzzle-cell.missing:not(.has-piece){background:#f5f4ef!important}
+.puzzle-cell.missing:before,.puzzle-cell.missing:after{border:0!important}
+.puzzle-cell:before,.puzzle-cell:after{content:none!important;display:none!important}
+.puzzle-cell[data-col="0"]:after,.puzzle-cell[data-col="2"]:after{
+  content:""!important;display:block!important;position:absolute;z-index:5;
+  width:34px;height:34px;left:auto;right:-17px;top:calc(50% - 17px);bottom:auto;
+  border:0!important;border-radius:50%;background:var(--tab-color,#f5f4ef)!important;
+  pointer-events:none;
+}
+.puzzle-cell[data-col="1"]:before,.puzzle-cell[data-col="3"]:before{
+  content:""!important;display:block!important;position:absolute;z-index:6;
+  width:34px;height:34px;left:-17px;right:auto;top:calc(50% - 17px);bottom:auto;
+  border:0!important;border-radius:50%;background:var(--piece-color,#f5f4ef)!important;
+  pointer-events:none;
+}
+.puzzle-cell.missing:not(.has-piece){z-index:2}
+.puzzle-cell.missing.has-piece{z-index:4}
+.puzzle-cell.fixed img,.puzzle-cell.missing.has-piece img{position:relative;z-index:1}
+.puzzle-piece{border:0!important;border-radius:0!important;background:transparent!important}
+.puzzle-piece:before,.puzzle-piece:after{display:none!important;content:none!important}
+.puzzle-cell.submitted-correct,.puzzle-cell.submitted-wrong{outline-offset:-2px}
+@media(max-width:520px){.puzzle-board-shell{padding:6px;border-radius:10px}}
 </style>
 </head>
 <body>
@@ -436,7 +465,7 @@ $("#reset").addEventListener("click",()=>start(false));
 $("#shuffle").addEventListener("click",()=>start(true));
 
 const puzzlePairs={
-  2:["GYE NYAME","KONTIRE NE AKWAMU","BINNKABI","DENKYEM","NTESIE / MATEMASIE","ƐSE NE TEKYEREMA","NKONSON-NKONSON","WAWA ABA","ƆSANE NE NSOROMA","ADINKRA-HENE","OGYANA-YENIMMEN","OHENE TUO","OSRANE","AKOBEN","FUNTUMFUNAFU DENKYEMFUNAFU","AKOMA NTOSO","AYA","MMARA KORADO","HANDCUFF","NKYIM"],
+  2:["GYE NYAME","KONTIRE NE AKWAMU","BI NKA BI","DENKYEM","NTESIE / MATEMASIE","ƐSE NE TƐKYERƐMA","NKƆNSON-KƆNSON","WAWA ABA","OSRANE NE NSOROMA","ADINKRA-HENE","OGYANA-YENIMMEN","OHENE TUO","OSRANE","AKOBEN","FUNTUNFUNEFU DENKYEMFUNEFU","AKOMA NTOSO","AYA","MMARA KRADO","HANDCUFF","NKYINKYIM"],
   3:["NYAME NE NNWU NA MAWU","KINTINKANTAN","NYAME DUA","SANKOFA","SEPO","KETE PA","NYAME NTI","PAGYA","DAME DAME","HWEMUDUA","NSOROMA","BESE SAKA","AKOFENA","ABUSUA PA","ADWO","AGYIN DAWURU","ASETENA PA","BOAFO YE NA","DONO","KRAPA"],
   4:["BOA ME NA ME BOA WO","FAWOHODIE","FOFOO","EBAN","ME WARE WO","SANKOFA","DUA","DWENNIMMEN","MUSUYIDE","MRE DANE","MATAPO","NSAA","NEA ONNIM NO SUA A OHU","NYANSAPO","WOFORO DUA PA A","WO NSA DA MU A","ODO NYERA FIE KWAN","FINANKRA","BIRIBI WO SORO","GYAWU ATIKO"],
   5:["NYAME NE NNWU NA MAWU","KINTINKANTAN","NYAME DUA","SANKOFA","SEPO","KETE PA","NYAME NTI","PAGYA","DAME DAME","HWEMUDUA","NSOROMA","BESE SAKA","AKOFENA","ABUSUA PA","ADWO","AGYIN DAWURU","ASETENA PA","BOAFO YE NA","DONO","DUAFE"]
@@ -456,7 +485,7 @@ function tileColor(level,index){
   }
   return puzzleTilePalette[level][index];
 }
-function tabColor(index){const col=index%4;if(col!==0&&col!==2)return "#f5f4ef";const partner=index+1;return puzzleHidden.includes(partner)?"#f5f4ef":puzzleTileColors[activePuzzleLevel][partner];}
+function tabColor(index){const col=index%4;if(col!==0&&col!==2)return "#f5f4ef";const partner=index+1;if(partner>=40)return "#f5f4ef";if(puzzleHidden.includes(partner)){const placed=placements[partner];return placed===undefined?"#f5f4ef":puzzleTileColors[activePuzzleLevel][placed];}return puzzleTileColors[activePuzzleLevel][partner];}
 const puzzleTileCache={},puzzleTileColors={};
 let activePuzzleLevel=2,puzzleHidden=[],placements={},selectedPiece=null,hasSubmitted=false;
 let unlockedLevel=Math.min(5,Math.max(1,Number(localStorage.getItem("adinkraUnlockedLevel")||1)));
@@ -531,7 +560,7 @@ async function renderPuzzle(){
     if(puzzleHidden.includes(i)){
       const piece=placements[i];
       const cls="puzzle-cell missing"+(piece!==undefined?" has-piece":"")+(hasSubmitted?(piece===i?" submitted-correct":" submitted-wrong"):"")+(selectedPiece!==null&&piece===selectedPiece?" selected":"");
-      return '<button type="button" class="'+cls+'" style="--piece-color:'+(piece!==undefined?puzzleTileColors[activePuzzleLevel][piece]:"#fff")+';--tab-color:'+(piece!==undefined?tabColor(piece):tabColor(i))+'" data-col="'+(i%4)+'" data-slot="'+i+'" aria-label="'+(piece===undefined?"Empty space":"Placed piece, tap to select")+'">'+(piece!==undefined?'<img draggable="true" data-board-piece="'+piece+'" src="'+tiles[piece]+'" alt="Placed piece">':"")+'</button>';
+      return '<button type="button" class="'+cls+'" style="--piece-color:'+(piece!==undefined?puzzleTileColors[activePuzzleLevel][piece]:"#f5f4ef")+';--tab-color:'+(piece!==undefined?tabColor(piece):tabColor(i))+'" data-col="'+(i%4)+'" data-slot="'+i+'" aria-label="'+(piece===undefined?"Empty space":"Placed piece, tap to select")+'">'+(piece!==undefined?'<img draggable="true" data-board-piece="'+piece+'" src="'+tiles[piece]+'" alt="Placed piece">':"")+'</button>';
     }
     return '<div class="puzzle-cell fixed" style="--piece-color:'+puzzleTileColors[activePuzzleLevel][i]+';--tab-color:'+tabColor(i)+'" data-col="'+(i%4)+'" role="img" aria-label="Adinkra board tile"><img src="'+tiles[i]+'" alt=""></div>';
   }).join("");
