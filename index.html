@@ -625,18 +625,18 @@ function placePuzzlePiece(slotId,pieceId){
 }
 async function submitPuzzle(){
   const correct=Object.entries(placements).filter(([slot,piece])=>Number(slot)===piece).length;
-  const total=puzzleHidden.length,score=correct,pct=Math.round(score/40*100);
+  const total=puzzleHidden.length,score=correct,pct=Math.round(score/total*100);
   await renderPuzzle();
   lastPuzzlePassed=correct===total;
   if(lastPuzzlePassed){
     unlockedLevel=Math.max(unlockedLevel,Math.min(5,activePuzzleLevel+1));localStorage.setItem("adinkraUnlockedLevel",String(unlockedLevel));updateLevelButtons();
     $("#puzzleComplete").className="puzzle-complete";$("#puzzleComplete").hidden=false;$("#completeTitle").textContent="Congratulations! Level "+activePuzzleLevel+" completed! 🎉";
-    $("#completeMessage").textContent=activePuzzleLevel<5?"All "+total+" missing pieces correct ("+score+" / 40). Level "+(activePuzzleLevel+1)+" is now unlocked.":"All "+total+" missing pieces correct ("+score+" / 40). You completed all five levels!";
+    $("#completeMessage").textContent=activePuzzleLevel<5?"All "+total+" missing pieces correct ("+score+" / "+total+"). Level "+(activePuzzleLevel+1)+" is now unlocked.":"All "+total+" missing pieces correct ("+score+" / "+total+"). You completed all five levels!";
     $("#continueLevel").textContent=activePuzzleLevel<5?"Continue to Level "+(activePuzzleLevel+1):"Play Level 1 again";
     setFeedback("Perfect score! The next level is unlocked.","good");
   }else{
     $("#puzzleComplete").className="puzzle-complete retry";$("#puzzleComplete").hidden=false;
-    $("#completeTitle").textContent="Try again";$("#completeMessage").textContent="Score: "+score+" / 40 ("+pct+"%).";$("#continueLevel").textContent="Try again";
+    $("#completeTitle").textContent="Try again";$("#completeMessage").textContent="Score: "+score+" / "+total+" ("+pct+"%).";$("#continueLevel").textContent="Try again";
     setFeedback("","");
   }
 }
