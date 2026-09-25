@@ -385,7 +385,7 @@ const puzzleLevels={
 };
 const glyphByName={"GYE NYAME":0,"KONTIRE AKWAMU":16,"BINKABI":6,"DENKYEM":14,"NTESIE / MATEMASIE":2,"ƐSE NE TEKYEREMA":7,"NKƆNSON-KNƆNSON":12,"WAWA ABA":13,"ƆSANE NE NSOROMA":5,"SANKOFA":1,"AKOFENA":16,"AKOKOBAATAN":14,"OWUO ATWEDEE":18,"AKOMA":8,"NKINKYIM":11,"NYANSAPO":2,"DUAFE":3,"FAWOHODIE":6,"KINTINKANTAN":7,"EBAN":9,"DWENNIMMEN":4,"MUSUYIDE":13,"MATAPO":12,"NYAME DUA":17,"NSOROMA":17,"BESE SAKA":15,"KETE PA":4,"KRAPA":19};
 function tileColor(level,index){return "hsl("+Math.round((index*137.508+level*29)%360)+",68%,78%)";}
-function tabColor(index){const col=index%4;return (col===0||col===2)?puzzleTileColors[activePuzzleLevel][index+1]:"#f5f4ef";}
+function tabColor(index){const col=index%4;if(col!==0&&col!==2)return "#f5f4ef";const partner=index+1;return puzzleHidden.includes(partner)?"#f5f4ef":puzzleTileColors[activePuzzleLevel][partner];}
 const puzzleTileCache={},puzzleTileColors={};
 let activePuzzleLevel=2,puzzleHidden=[],placements={},selectedPiece=null,hasSubmitted=false;
 let unlockedLevel=Math.min(5,Math.max(1,Number(localStorage.getItem("adinkraUnlockedLevel")||1)));
