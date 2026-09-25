@@ -498,7 +498,7 @@ $("#shuffle").addEventListener("click",()=>start(true));
 
 const puzzlePairs={
   2:["GYE NYAME","KONTIRE NE AKWAMU","BI NKA BI","DENKYEM","NTESIE / MATEMASIE","ƐSE NE TƐKYERƐMA","NKONSONKONSON","WAWA ABA","OSRANE NE NSOROMA","ADINKRA-HENE","OGYANA-YENIMMEN","OHENE TUO","OSRANE","AKOBEN","FUNTUNFUNEFU DENKYEMFUNEFU","AKOMA NTOSO","AYA","MMARA KRADO","HANDCUFF","NKYINKYIM"],
-  3:["NYAME NE NNWU NA MAWU","KINTINKANTAN","NYAME DUA","SANKOFA","SEPO","KETE PA","NYAME NTI","PAGYA","DAME DAME","HWEMUDUA","NSOROMA","BESE SAKA","AKOFENA","ABUSUA PA","ADWO","AGYIN DAWURU","ASETENA PA","BOAFO YE NA","DONO","KRAPA"],
+  3:["NYAME NNWU NA MAWU","KINTINKANTAN","NYAME DUA","SEPO","NHWIMU","BESE SAKA","PAGYA","DAME DAME","HWEMUDUA","NSOROMA","SANKOFA","AKOFENA","AKƆKƆBAATAN NAN TIA BA, NA ƐNKUM BA","ƆHENE ANIWA","KODIE MMOWEREWA","MPUANNUM","OWUO ATWEDEE BAAKO MFO","AKOMA","KRAPA","DUAFE"],
   4:["BOA ME NA ME BOA WO","FAWOHODIE","FOFOO","EBAN","ME WARE WO","SANKOFA","DUA","DWENNIMMEN","MUSUYIDE","MRE DANE","MATAPO","NSAA","NEA ONNIM NO SUA A OHU","NYANSAPO","WOFORO DUA PA A","WO NSA DA MU A","ODO NYERA FIE KWAN","FINANKRA","BIRIBI WO SORO","GYAWU ATIKO"],
   5:["NYAME NE NNWU NA MAWU","KINTINKANTAN","NYAME DUA","SANKOFA","SEPO","KETE PA","NYAME NTI","PAGYA","DAME DAME","HWEMUDUA","NSOROMA","BESE SAKA","AKOFENA","ABUSUA PA","ADWO","AGYIN DAWURU","ASETENA PA","BOAFO YE NA","DONO","DUAFE"]
 };
@@ -525,7 +525,7 @@ const puzzleGrid=$("#puzzleGrid"),pieceBank=$("#pieceBank"),puzzleFeedback=$("#p
 async function getPuzzleTiles(level){
   if(puzzleTileCache[level])return puzzleTileCache[level];
   let sprite=null,cellW=0,cellH=0;
-  if(level!==2){sprite=new Image();sprite.src="assets/adinkra/generated-symbols.webp";await sprite.decode();cellW=sprite.naturalWidth/5;cellH=sprite.naturalHeight/4;}
+  if(level!==2&&level!==3){sprite=new Image();sprite.src="assets/adinkra/generated-symbols.webp";await sprite.decode();cellW=sprite.naturalWidth/5;cellH=sprite.naturalHeight/4;}
   const tiles=Array(40);
   puzzleTileColors[level]=Array(40);
   const pairs=puzzlePairs[level];
@@ -535,8 +535,10 @@ async function getPuzzleTiles(level){
     puzzleTileColors[level][symbolIndex]=symbolColor;puzzleTileColors[level][nameIndex]=nameColor;
     const symbolCanvas=document.createElement("canvas");symbolCanvas.width=360;symbolCanvas.height=210;
     const sctx=symbolCanvas.getContext("2d");sctx.fillStyle=symbolColor;sctx.fillRect(0,0,360,210);
-    if(level===2){
-      const symbolImage=new Image();symbolImage.src="assets/adinkra/level2/"+String(p+1).padStart(2,"0")+"-symbol.png";await symbolImage.decode();
+    if(level===2||level===3){
+      const assetNumber=level===2?p+1:p+21;
+      const assetName=level===2?String(assetNumber).padStart(2,"0")+"-symbol.png":String(assetNumber)+"-symbol.png";
+      const symbolImage=new Image();symbolImage.src="assets/adinkra/level"+level+"/"+assetName;await symbolImage.decode();
       sctx.drawImage(symbolImage,95,20,170,170);
     }else{
       const glyphIndex=glyphByName[pairs[p].toUpperCase()]??p,gx=glyphIndex%5,gy=Math.floor(glyphIndex/5);
