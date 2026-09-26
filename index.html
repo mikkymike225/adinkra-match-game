@@ -112,6 +112,13 @@ button.card.name{min-height:84px;padding:10px 7px}
 .puzzle-complete h3{margin:0 0 5px}
 .puzzle-complete p{margin:0;color:var(--muted);font-size:.85rem}
 .puzzle-complete .btn{margin-top:10px}
+.admin-settings{margin-top:18px;padding:15px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.85)}
+.admin-settings summary{cursor:pointer;font-weight:800}
+.admin-grid{display:grid;gap:10px;margin-top:12px}
+.admin-grid label{display:flex;align-items:center;gap:9px;font-size:.9rem}
+.admin-grid input[type=password]{width:100%;max-width:360px;padding:10px;border:1px solid var(--line);border-radius:10px}
+.admin-help,.admin-status{font-size:.82rem;color:var(--muted);line-height:1.45}
+.admin-status{min-height:1.2em}
 [hidden]{display:none!important}
 @media(max-width:800px){.puzzle-layout{grid-template-columns:1fr}.puzzle-piece-panel{position:static;display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:10px;align-items:center}.puzzle-piece-panel h3,.puzzle-piece-note{grid-column:1}.current-piece{grid-column:2;grid-row:1 / span 3}.puzzle-actions{grid-column:1;grid-row:3;grid-template-columns:1fr 1fr}.puzzle-feedback{grid-column:1 / -1}}
 @media(max-width:520px){.level-select{padding:12px}.level-buttons{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.level-btn{font-size:.76rem;padding:8px 3px}.puzzle-board-shell{padding:6px;border-radius:10px}.puzzle-piece-panel{grid-template-columns:minmax(0,1fr) 130px;padding:10px}.puzzle-actions .btn{padding:8px 10px;font-size:.78rem}}
@@ -357,6 +364,17 @@ button.card.name{min-height:84px;padding:10px 7px}
   </div>
 </section>
 
+<details class="admin-settings">
+  <summary>Admin settings</summary>
+  <div class="admin-grid">
+    <label><input type="checkbox" id="thresholdToggle"> Enforce score thresholds for level unlocks</label>
+    <div class="admin-help">When on: Level 1 → 2 needs 100%, Level 2 → 3 needs 70%, Level 3 → 4 needs 80%, and Level 4 → 5 needs 100%. When off, completing a level unlocks the next one regardless of score.</div>
+    <label for="adminPassword">Admin password</label>
+    <input type="password" id="adminPassword" autocomplete="current-password" placeholder="Enter admin password to save">
+    <button type="button" class="btn primary" id="saveAdminSettings">Save settings</button>
+    <div class="admin-status" id="adminSettingsStatus" aria-live="polite"></div>
+  </div>
+</details>
 <div class="footer">Adinkra Match Game · Built for learning Ghanaian-Akan Adinkra symbols</div>
 </main>
 
@@ -481,13 +499,13 @@ $("#submit").addEventListener("click",()=>{
     if(ok) score++;
     s.classList.add(ok?"correct":"wrong");
   });
-  const pct=Math.round(score/6*100);
-  const achievement=score===6?"Congratulations! Level 1 completed! 🎉":score>=4?"Symbol Scholar 🌟":score>=2?"Culture Explorer 🌿":"Keep Learning 📚";
-  if(score===6){unlockedLevel=Math.max(unlockedLevel,2);localStorage.setItem("adinkraUnlockedLevel",String(unlockedLevel));updateLevelButtons();}
+  const pct=Math.round(score/6*100),canProgress=progressionGateMet(1,score,6);
+  const achievement=canProgress?(score===6?"Congratulations! Level 1 completed! 🎉":"Level 2 unlocked!"):score>=4?"Symbol Scholar 🌟":score>=2?"Culture Explorer 🌿":"Keep Learning 📚";
+  if(canProgress){unlockedLevel=Math.max(unlockedLevel,2);localStorage.setItem("adinkraUnlockedLevel",String(unlockedLevel));updateLevelButtons();}
   result.className="result show";
   result.innerHTML=`<div class="resultrow"><div><div class="sub">YOUR SCORE</div><div class="big">${score}/6</div><strong>${achievement}</strong></div><div style="text-align:right"><div class="big">${pct}%</div><div class="sub">${score===6?'Perfect match!':'Green = correct · Red = incorrect'}</div></div></div>`;
-  if(score===6){
-    const note=document.createElement("div");note.className="sub";note.textContent="Level 2 is now unlocked.";result.appendChild(note);
+  if(canProgress){
+    const note=document.createElement("div");note.className="sub";note.textContent=progressionThresholdsEnabled?"Level 2 is now unlocked.":"Level 2 unlocked; score thresholds are off.";result.appendChild(note);
     const next=document.createElement("button");next.className="btn primary";next.textContent="Continue to Level 2";
     next.addEventListener("click",()=>chooseLevel(2));result.appendChild(next);
   }else{
@@ -521,6 +539,8 @@ function tileColor(level,index){
 function tabColor(index){const col=index%4;if(col!==0&&col!==2)return "#f5f4ef";const partner=index+1;if(partner>=40)return "#f5f4ef";if(puzzleHidden.includes(partner)){const placed=placements[partner];return placed===undefined?"#f5f4ef":puzzleTileColors[activePuzzleLevel][placed];}return puzzleTileColors[activePuzzleLevel][partner];}
 const puzzleTileCache={},puzzleTileColors={};
 let activePuzzleLevel=2,puzzleHidden=[],placements={},selectedPiece=null,lastPuzzlePassed=false;
+let progressionThresholdsEnabled=true;
+const levelThresholdPercents={1:100,2:70,3:80,4:100,5:100};
 let unlockedLevel=Math.min(5,Math.max(1,Number(localStorage.getItem("adinkraUnlockedLevel")||1)));
 const puzzleGrid=$("#puzzleGrid"),pieceBank=$("#pieceBank"),puzzleFeedback=$("#puzzleFeedback");
 async function getPuzzleTiles(level){
@@ -565,14 +585,19 @@ async function getPuzzleTiles(level){
   }
   puzzleTileCache[level]=tiles;return tiles;
 }
+function progressionGateMet(level,score,total){
+  if(!progressionThresholdsEnabled)return true;
+  const required=levelThresholdPercents[level]??100;
+  return total>0 && score/total*100>=required;
+}
 function updateLevelButtons(){
   document.querySelectorAll(".level-btn").forEach(b=>{
     const level=Number(b.dataset.level);b.disabled=level>unlockedLevel;
-    b.setAttribute("aria-label",level>unlockedLevel?"Level "+level+" locked until you get a perfect score":"Level "+level);
+    b.setAttribute("aria-label",level>unlockedLevel?(progressionThresholdsEnabled?"Level "+level+" locked until the score requirement is met":"Complete the previous level to unlock Level "+level):"Level "+level);
   });
 }
 function chooseLevel(level){
-  if(level>unlockedLevel){setFeedback("Get a perfect score on the previous level to unlock this one.","bad");return;}
+  if(level>unlockedLevel){setFeedback(progressionThresholdsEnabled?"Meet the score requirement in the previous level to unlock this one.":"Complete the previous level to unlock this one.","bad");return;}
   document.querySelectorAll(".level-btn").forEach(b=>b.setAttribute("aria-pressed",String(Number(b.dataset.level)===level)));
   $("#levelOneGame").hidden=level!==1;$("#puzzleGame").hidden=level===1;
   if(level>1) setupPuzzle(level);
@@ -625,15 +650,19 @@ function placePuzzlePiece(slotId,pieceId){
 }
 async function submitPuzzle(){
   const correct=Object.entries(placements).filter(([slot,piece])=>Number(slot)===piece).length;
-  const total=puzzleHidden.length,score=correct,pct=Math.round(score/total*100);
+  const total=puzzleHidden.length,score=correct,pct=Math.round(score/total*100),required=levelThresholdPercents[activePuzzleLevel]??100;
+  if(Object.keys(placements).length<total){setFeedback("Place all 20 pieces before submitting.","bad");return;}
   await renderPuzzle();
-  lastPuzzlePassed=correct===total;
+  lastPuzzlePassed=progressionGateMet(activePuzzleLevel,correct,total);
   if(lastPuzzlePassed){
-    unlockedLevel=Math.max(unlockedLevel,Math.min(5,activePuzzleLevel+1));localStorage.setItem("adinkraUnlockedLevel",String(unlockedLevel));updateLevelButtons();
-    $("#puzzleComplete").className="puzzle-complete";$("#puzzleComplete").hidden=false;$("#completeTitle").textContent="Congratulations! Level "+activePuzzleLevel+" completed! 🎉";
-    $("#completeMessage").textContent=activePuzzleLevel<5?"All "+total+" missing pieces correct ("+score+" / "+total+"). Level "+(activePuzzleLevel+1)+" is now unlocked.":"All "+total+" missing pieces correct ("+score+" / "+total+"). You completed all five levels!";
+    if(activePuzzleLevel<5){unlockedLevel=Math.max(unlockedLevel,activePuzzleLevel+1);localStorage.setItem("adinkraUnlockedLevel",String(unlockedLevel));updateLevelButtons();}
+    $("#puzzleComplete").className="puzzle-complete";$("#puzzleComplete").hidden=false;
+    $("#completeTitle").textContent=activePuzzleLevel<5?"Level "+activePuzzleLevel+" complete! 🎉":"Game complete! 🎉";
+    $("#completeMessage").textContent=activePuzzleLevel<5
+      ?"Score: "+score+" / "+total+" ("+pct+"%). Level "+(activePuzzleLevel+1)+" is unlocked."+(progressionThresholdsEnabled?" Required: "+required+"%.":"")
+      :"Score: "+score+" / "+total+" ("+pct+"%). You completed all five levels!";
     $("#continueLevel").textContent=activePuzzleLevel<5?"Continue to Level "+(activePuzzleLevel+1):"Play Level 1 again";
-    setFeedback("Perfect score! The next level is unlocked.","good");
+    setFeedback(progressionThresholdsEnabled?"Score requirement met. The next level is unlocked.":"The next level is unlocked.","good");
   }else{
     $("#puzzleComplete").className="puzzle-complete retry";$("#puzzleComplete").hidden=false;
     $("#completeTitle").textContent="Try again";$("#completeMessage").textContent="Score: "+score+" / "+total+" ("+pct+"%).";$("#continueLevel").textContent="Try again";
@@ -644,9 +673,26 @@ $("#submitPuzzle").addEventListener("click",submitPuzzle);
 $("#restartPuzzle").addEventListener("click",()=>setupPuzzle(activePuzzleLevel));
 $("#continueLevel").addEventListener("click",()=>{if(!lastPuzzlePassed){setupPuzzle(activePuzzleLevel);window.scrollTo({top:0,behavior:"smooth"});return;}const next=activePuzzleLevel<5?activePuzzleLevel+1:1;chooseLevel(next);window.scrollTo({top:0,behavior:"smooth"});});
 document.querySelectorAll(".level-btn").forEach(b=>b.addEventListener("click",()=>chooseLevel(Number(b.dataset.level))));
-updateLevelButtons();
-chooseLevel(1);
-start(true);
+$("#saveAdminSettings").addEventListener("click",async()=>{
+  const status=$("#adminSettingsStatus"),password=$("#adminPassword").value;
+  if(!password){status.textContent="Enter the admin password first.";return;}
+  status.textContent="Saving…";
+  try{
+    const response=await fetch("/api/game-settings",{method:"POST",headers:{"content-type":"application/json","x-admin-password":password},body:JSON.stringify({thresholdsEnabled:$("#thresholdToggle").checked})});
+    const result=await response.json();
+    if(!response.ok){status.textContent=result.error||"Could not save settings.";return;}
+    progressionThresholdsEnabled=result.thresholdsEnabled;updateLevelButtons();status.textContent="Settings saved for all players.";$("#adminPassword").value="";
+  }catch(_){status.textContent="Could not reach the settings service. Check the Cloudflare setup.";}
+});
+async function loadGameSettings(){
+  try{
+    const response=await fetch("/api/game-settings",{cache:"no-store"});
+    if(response.ok){const settings=await response.json();progressionThresholdsEnabled=settings.thresholdsEnabled!==false;}
+  }catch(_){}
+  $("#thresholdToggle").checked=progressionThresholdsEnabled;
+  updateLevelButtons();chooseLevel(1);start(true);
+}
+loadGameSettings();
 </script>
 </body>
 </html>
