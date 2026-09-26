@@ -130,6 +130,7 @@ button.card.name{min-height:84px;padding:10px 7px}
 .puzzle-piece img{width:100%;height:100%;object-fit:fill;display:block}
 .puzzle-cell.missing.has-piece{border-style:solid;border-color:#d7c7a6;padding:0}
 .puzzle-cell.missing.has-piece img{width:100%;height:100%;object-fit:fill;display:block}
+.puzzle-cell.submitted-correct{outline:3px solid #3d8966;outline-offset:-3px}
 
 
 .puzzle-cell.missing.selected{outline:3px solid var(--gold);outline-offset:-3px}
@@ -538,7 +539,7 @@ function tileColor(level,index){
 }
 function tabColor(index){const col=index%4;if(col!==0&&col!==2)return "#f5f4ef";const partner=index+1;if(partner>=40)return "#f5f4ef";if(puzzleHidden.includes(partner)){const placed=placements[partner];return placed===undefined?"#f5f4ef":puzzleTileColors[activePuzzleLevel][placed];}return puzzleTileColors[activePuzzleLevel][partner];}
 const puzzleTileCache={},puzzleTileColors={};
-let activePuzzleLevel=2,puzzleHidden=[],placements={},selectedPiece=null,lastPuzzlePassed=false;
+let activePuzzleLevel=2,puzzleHidden=[],placements={},selectedPiece=null,lastPuzzlePassed=false,showCorrectFeedback=false;
 let progressionThresholdsEnabled=true;
 const levelThresholdPercents={1:100,2:70,3:80,4:100,5:100};
 let unlockedLevel=Math.min(5,Math.max(1,Number(localStorage.getItem("adinkraUnlockedLevel")||1)));
@@ -607,7 +608,7 @@ async function setupPuzzle(level){
   activePuzzleLevel=level;puzzleGrid.style.aspectRatio=puzzleLevels[level].ratio;
   $("#puzzleTitle").textContent=puzzleLevels[level].title;
   $("#puzzleInstructions").textContent="For each pair, the symbol or its name is randomly missing. The mixed pieces keep their original colors and puzzle shape. Place them freely, then submit.";
-  $("#puzzleComplete").hidden=true;placements={};selectedPiece=null;lastPuzzlePassed=false;
+  $("#puzzleComplete").hidden=true;placements={};selectedPiece=null;lastPuzzlePassed=false;showCorrectFeedback=false;
   const missingKinds=shuffle([...Array(10).fill("symbol"),...Array(10).fill("name")]);
   puzzleHidden=shuffle(Array.from({length:20},(_,p)=>{
     const row=Math.floor(p/2),pairInRow=p%2,si=row*4+pairInRow*2;
@@ -620,7 +621,7 @@ async function renderPuzzle(){
   puzzleGrid.innerHTML=Array.from({length:40},(_,i)=>{
     if(puzzleHidden.includes(i)){
       const piece=placements[i];
-      const cls="puzzle-cell missing"+(piece!==undefined?" has-piece":"")+(selectedPiece!==null&&piece===selectedPiece?" selected":"");
+      const cls="puzzle-cell missing"+(piece!==undefined?" has-piece":"")+(showCorrectFeedback&&piece===i?" submitted-correct":"")+(selectedPiece!==null&&piece===selectedPiece?" selected":"");
       return '<button type="button" class="'+cls+'" style="--piece-color:'+(piece!==undefined?puzzleTileColors[activePuzzleLevel][piece]:"#f5f4ef")+';--tab-color:'+(piece!==undefined?tabColor(piece):tabColor(i))+'" data-col="'+(i%4)+'" data-slot="'+i+'" aria-label="'+(piece===undefined?"Empty space":"Placed piece, tap to select")+'">'+(piece!==undefined?'<img draggable="true" data-board-piece="'+piece+'" src="'+tiles[piece]+'" alt="Placed piece">':"")+'</button>';
     }
     return '<div class="puzzle-cell fixed" style="--piece-color:'+puzzleTileColors[activePuzzleLevel][i]+';--tab-color:'+tabColor(i)+'" data-col="'+(i%4)+'" role="img" aria-label="Adinkra board tile"><img src="'+tiles[i]+'" alt=""></div>';
@@ -628,7 +629,7 @@ async function renderPuzzle(){
   pieceBank.innerHTML=puzzleHidden.filter(id=>!Object.values(placements).includes(id)).map(id=>'<button type="button" class="puzzle-piece '+(selectedPiece===id?"selected":"")+'" data-piece="'+id+'" data-col="'+(id%4)+'" style="--piece-color:'+puzzleTileColors[activePuzzleLevel][id]+';--tab-color:'+tabColor(id)+'" draggable="true" aria-label="Piece '+(id+1)+'"><img src="'+tiles[id]+'" alt=""></button>').join("");
   $("#puzzleProgress").textContent=Object.keys(placements).length+" / 20 pieces placed";
   pieceBank.querySelectorAll("[data-piece]").forEach(el=>{
-    el.addEventListener("click",()=>{selectedPiece=Number(el.dataset.piece);renderPuzzle();setFeedback("Now choose any empty space. You can move pieces again before submitting.","");});
+    el.addEventListener("click",()=>{selectedPiece=Number(el.dataset.piece);showCorrectFeedback=false;lastPuzzlePassed=false;$("#puzzleComplete").hidden=true;renderPuzzle();setFeedback("Now choose any empty space. You can move pieces again before submitting.","");});
     el.addEventListener("dragstart",e=>e.dataTransfer.setData("text/piece",el.dataset.piece));
   });
   puzzleGrid.querySelectorAll("[data-slot]").forEach(slot=>{
@@ -637,7 +638,7 @@ async function renderPuzzle(){
     slot.addEventListener("click",()=>{
       const id=Number(slot.dataset.slot);
       if(selectedPiece!==null){placePuzzlePiece(id,selectedPiece);return;}
-      if(placements[id]!==undefined){selectedPiece=placements[id];delete placements[id];$("#puzzleComplete").hidden=true;renderPuzzle();setFeedback("Piece picked up. Choose another empty space.","");}
+      if(placements[id]!==undefined){selectedPiece=placements[id];delete placements[id];showCorrectFeedback=false;lastPuzzlePassed=false;$("#puzzleComplete").hidden=true;renderPuzzle();setFeedback("Piece picked up. Choose another empty space.","");}
     });
     const img=slot.querySelector("[data-board-piece]");if(img)img.addEventListener("dragstart",e=>e.dataTransfer.setData("text/piece",img.dataset.boardPiece));
   });
@@ -645,14 +646,14 @@ async function renderPuzzle(){
 function placePuzzlePiece(slotId,pieceId){
   const oldSlot=Object.keys(placements).find(key=>placements[key]===pieceId);if(oldSlot!==undefined)delete placements[oldSlot];
   const displaced=placements[slotId];if(displaced!==undefined)delete placements[slotId];
-  placements[slotId]=pieceId;selectedPiece=displaced!==undefined?displaced:null;$("#puzzleComplete").hidden=true;
+  placements[slotId]=pieceId;selectedPiece=displaced!==undefined?displaced:null;showCorrectFeedback=false;lastPuzzlePassed=false;$("#puzzleComplete").hidden=true;
   renderPuzzle();setFeedback("Piece placed. Keep arranging, then submit for your score.","");
 }
 async function submitPuzzle(){
   const correct=Object.entries(placements).filter(([slot,piece])=>Number(slot)===piece).length;
   const total=puzzleHidden.length,score=correct,pct=Math.round(score/total*100),required=levelThresholdPercents[activePuzzleLevel]??100;
   if(Object.keys(placements).length<total){setFeedback("Place all 20 pieces before submitting.","bad");return;}
-  await renderPuzzle();
+  showCorrectFeedback=true;await renderPuzzle();
   lastPuzzlePassed=progressionGateMet(activePuzzleLevel,correct,total);
   if(lastPuzzlePassed){
     if(activePuzzleLevel<5){unlockedLevel=Math.max(unlockedLevel,activePuzzleLevel+1);localStorage.setItem("adinkraUnlockedLevel",String(unlockedLevel));updateLevelButtons();}
