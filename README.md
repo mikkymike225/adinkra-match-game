@@ -2,27 +2,22 @@
 
 A playable web game for matching Ghanaian-Akan Adinkra symbols with their names and meanings.
 
-## Matches
-- DUAFE — Beauty
-- OSRANE — Crescent
-- NYANSAPO — Wisdom
-- OWUO ATWEDEE — Mortality
-- EPA — Justice
-- KINTINKANTAN — Arrogance
-
 ## Level unlock rules
-The admin can enable or disable score thresholds from **Admin settings** at the bottom of the page. When enabled, Level 1 requires 100% to unlock Level 2; Level 2 requires 70% to unlock Level 3; Level 3 requires 80% to unlock Level 4; Level 4 requires 100% to unlock Level 5. When disabled, players must place all pieces in a level, but any score unlocks the next level.
 
-Level 2–5 scores count only the 20 missing pieces, so scores range from 0/20 to 20/20.
+An owner or admin can enable or disable score thresholds from the **Admin** area. When enabled, Level 1 requires 100% to unlock Level 2; Level 2 requires 70% to unlock Level 3; Level 3 requires 80% to unlock Level 4; Level 4 requires 100% to unlock Level 5. When disabled, players still place all pieces, but any score unlocks the next level.
 
-## Cloudflare Pages setup for shared admin settings
-The game is static, so shared settings are stored in Cloudflare KV through a Pages Function.
+Level 2–5 scores count the 20 missing pieces, so scores range from 0/20 to 20/20. After submitting, correctly placed missing pieces show a green outline and check mark; the result shows the score and a retry button without revealing the correct answers.
 
-1. In Cloudflare, create a KV namespace (for example, `ADINKRA_GAME_SETTINGS`).
-2. Open the Pages project settings and add a KV namespace binding named `GAME_SETTINGS`, pointing to that namespace.
-3. Add a secret named `ADMIN_PASSWORD` in the Pages project settings. Choose your own password.
-4. Redeploy the site from `main`.
+## Cloudflare Pages setup
 
-After deployment, open **Admin settings**, choose whether score thresholds are on or off, enter the admin password, and save. The setting is shared with all players. Without the KV binding and secret, the game uses the default thresholds and admins cannot save changes.
+Shared settings, admin accounts, and sign-in sessions use Cloudflare KV through Pages Functions.
 
-Designed for Cloudflare Pages.
+1. Create a KV namespace in Cloudflare.
+2. In the Pages project, add a KV namespace binding named `GAME_SETTINGS` and connect it to that namespace.
+3. Add a Pages environment variable named `OWNER_EMAIL` with the owner's email address.
+4. Add a Pages secret named `OWNER_PASSWORD` with a strong password of at least 12 characters. This is the owner sign-in.
+5. Remove the old `ADMIN_PASSWORD` secret if it exists; it is no longer used.
+6. Redeploy the site from `main`.
+
+After deployment, sign in from the **Admin sign in** button. The owner sees **Settings** and **Manage admins** tabs, can change the shared progression setting, and can add or remove admin accounts. Admins can change settings but cannot manage accounts. No public account registration is available.
+
